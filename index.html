@@ -647,6 +647,7 @@
    const height = document.getElementById('celebHeight').value;
    const hairColor = Array.from(document.getElementById('celebHairColor').selectedOptions)
     .map(opt => opt.value);
+   const normalizedHairColor = hairColor.map(color => getBaseHairColor(color));
    const eyeColor = selectedEyeColors;
    const ethnicity = document.getElementById('celebEthnicity').value;
    const occupation = document.getElementById('celebOccupation').value;
@@ -667,11 +668,11 @@
     birthDate: birthDate,
     age: age,
     height: height || null,
-    hairColor: hairColor,
+    hairColor: normalizedHairColor,
     eyeColor: eyeColor,
     ethnicity: ethnicity || null,
     citizenship: [...selectedCountries],
-    occupation: normalizedOccupation,
+    occupation: occupation,
     gender: gender,
     zodiac: zodiac,
     photo: photoUrl || `https://placeholder.darth-kolmar.workers.dev?w=300&h=200&bg=cccccc&fg=333333&txt=${encodeURIComponent(name)}`,
@@ -739,7 +740,17 @@
    const nameFilter = document.getElementById('filterName').value.toLowerCase();
 
    let filtered = celebrities.filter(celeb => {
-    return (!hairColor || celeb.hairColor.includes(hairColor)) &&
+    return (!hairColor || celeb.hairColor.includes(hairColor) ||
+     (hairColor === 'блондин' && celeb.hairColor.includes('блондинка')) ||
+     (hairColor === 'блондинка' && celeb.hairColor.includes('блондин')) ||
+     (hairColor === 'брюнет' && celeb.hairColor.includes('брюнетка')) ||
+     (hairColor === 'брюнетка' && celeb.hairColor.includes('брюнет')) ||
+     (hairColor === 'шатен' && celeb.hairColor.includes('шатенка')) ||
+     (hairColor === 'шатенка' && celeb.hairColor.includes('шатен')) ||
+     (hairColor === 'рыжий' && celeb.hairColor.includes('рыжая')) ||
+     (hairColor === 'рыжая' && celeb.hairColor.includes('рыжий')) ||
+     (hairColor === 'седой' && celeb.hairColor.includes('седая')) ||
+     (hairColor === 'седая' && celeb.hairColor.includes('седой'))) &&
      (!occupation || celeb.occupation === occupation ||
       (occupation === 'актёр' && celeb.occupation === 'актриса') ||
       (occupation === 'певец' && celeb.occupation === 'певица') ||
@@ -802,7 +813,7 @@
                             </div>
                             
                             <div class="mb-2">
-    ${celeb.hairColor.map(color => `<span class="badge bg-purple">${color}</span>`).join('')}
+    ${celeb.hairColor.map(color => `<span class="badge bg-purple">${getGenderHairColor(color, celeb.gender)}</span>`).join('')}
     <span class="badge bg-success">${getGenderOccupation(celeb.occupation, celeb.gender)}</span>
     ${celeb.gender === 'мужчина' ?
       '<span class="badge bg-primary"><i class="fas fa-mars me-1"></i>Мужчина</span>' :
@@ -1002,18 +1013,6 @@
    const eyeColor = selectedEyeColors;
    const ethnicity = document.getElementById('celebEthnicity').value;
    const occupation = document.getElementById('celebOccupation').value;
-   // Автоматически преобразуем профессию по полу
-   const normalizedOccupation = getBaseOccupation(occupation);
-
-   function getBaseOccupation(occupation) {
-    const baseOccupations = {
-     'актриса': 'актёр',
-     'певица': 'певец',
-     'спортсменка': 'спортсмен',
-     'блогерша': 'блогер'
-    };
-    return baseOccupations[occupation] || occupation;
-   }
    const gender = document.querySelector('input[name="celebGender"]:checked')?.value;
    const photoUrl = document.getElementById('celebPhotoUrl').value;
 
@@ -1075,6 +1074,30 @@
    };
 
    return occupations[occupation]?.[gender] || occupation;
+  }
+
+  function getBaseHairColor(color) {
+   const baseColors = {
+    'блондинка': 'блондин',
+    'брюнетка': 'брюнет',
+    'шатенка': 'шатен',
+    'рыжая': 'рыжий',
+    'седая': 'седой'
+   };
+   return baseColors[color] || color;
+  }
+
+  function getGenderHairColor(color, gender) {
+   const hairColors = {
+    'блондин': { мужчина: 'блондин', женщина: 'блондинка' },
+    'брюнет': { мужчина: 'брюнет', женщина: 'брюнетка' },
+    'шатен': { мужчина: 'шатен', женщина: 'шатенка' },
+    'рыжий': { мужчина: 'рыжий', женщина: 'рыжая' },
+    'седой': { мужчина: 'седой', женщина: 'седая' },
+    'другое': { мужчина: 'другое', женщина: 'другое' }
+   };
+
+   return hairColors[color]?.[gender] || color;
   }
 
   function getAgeWord(age) {
