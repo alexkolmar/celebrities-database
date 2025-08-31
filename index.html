@@ -608,7 +608,7 @@
     citizenship: [...selectedCountries],
     occupation: occupation,
     zodiac: zodiac,
-    photo: photoUrl || `https://via.placeholder.com/300x200/6c757d/ffffff?text=${encodeURIComponent(name)}`,
+    photo: photoUrl || `https://placeholder.darth-kolmar.workers.dev?w=300&h=200&bg=cccccc&fg=333333&txt=${encodeURIComponent(name)}`,
     createdAt: new Date().toISOString()
    };
 
@@ -706,7 +706,7 @@
     card.className = 'col-md-6 mb-4';
     card.innerHTML = `
                     <div class="card">
-                        <img src="${celeb.photo}" class="celebrity-img" alt="${celeb.name}" onerror="this.src='https://via.placeholder.com/300x200/6c757d/ffffff?text=${encodeURIComponent(celeb.name)}'">
+                        <img src="${celeb.photo}" class="celebrity-img" alt="${celeb.name}" onerror="this.src='https://placeholder.darth-kolmar.workers.dev?w=300&h=200&bg=cccccc&fg=333333&txt=${encodeURIComponent(celeb.name)}'">
                         <div class="card-body">
                             <h5 class="card-title">${celeb.name}</h5>
                             
