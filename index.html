@@ -366,6 +366,12 @@
    setupEventListeners();
    setupCountrySearch();
    autoLoadGist();
+
+   // Восстанавливаем сортировку
+   const savedSortOrder = localStorage.getItem('celebritiesSortOrder');
+   if (savedSortOrder) {
+    document.getElementById('sortOrder').value = savedSortOrder;
+   }
   });
 
   // ===== ОСНОВНЫЕ ФУНКЦИИ =====
@@ -405,6 +411,13 @@
    document.getElementById('celebName').value = celeb.name;
    document.getElementById('celebBirthDate').value = celeb.birthDate || '';
    document.getElementById('celebHeight').value = celeb.height || '';
+   document.getElementById('celebPhotoUrl').value = celeb.photo || '';
+   updatePhotoPreview();
+
+   // Пол
+   if (celeb.gender) {
+    document.querySelector(`input[name="celebGender"][value="${celeb.gender}"]`).checked = true;
+   }
 
    // Цвет волос
    const hairColorSelect = document.getElementById('celebHairColor');
@@ -558,22 +571,6 @@
 
   // ===== ОСТАЛЬНЫЕ ФУНКЦИИ =====
   function setupEventListeners() {
-   const photoInput = document.getElementById('celebPhoto');
-   if (photoInput) {
-    photoInput.addEventListener('change', function (e) {
-     const file = e.target.files[0];
-     if (file) {
-      const reader = new FileReader();
-      reader.onload = function (e) {
-       const preview = document.getElementById('photoPreview');
-       preview.src = e.target.result;
-       preview.style.display = 'block';
-      };
-      reader.readAsDataURL(file);
-     }
-    });
-   }
-
    const eyeColorSelect = document.getElementById('celebEyeColor');
    if (eyeColorSelect) {
     eyeColorSelect.addEventListener('change', function () {
@@ -762,87 +759,95 @@
    return age;
   }
 
+  // ===== ФУНКЦИИ ДЛЯ ФОТО ПО URL =====
+  function updatePhotoPreview() {
+   const url = document.getElementById('celebPhotoUrl').value;
+   const preview = document.getElementById('photoPreview');
+
+   if (url) {
+    preview.src = url;
+    preview.style.display = 'block';
+    preview.onerror = function () {
+     preview.style.display = 'none';
+     alert('Не удалось загрузить изображение по этой ссылке');
+    }
+   } else {
+    preview.style.display = 'none';
+   }
+  }
+
   function addCelebrity() {
    const name = document.getElementById('celebName').value;
    const birthDate = document.getElementById('celebBirthDate').value;
    const height = document.getElementById('celebHeight').value;
+   const gender = document.querySelector('input[name="celebGender"]:checked')?.value;
    const hairColor = Array.from(document.getElementById('celebHairColor').selectedOptions)
     .map(opt => opt.value);
    const eyeColor = selectedEyeColors;
    const ethnicity = document.getElementById('celebEthnicity').value;
    const occupation = document.getElementById('celebOccupation').value;
-   const photoFile = document.getElementById('celebPhoto').files[0];
+   const photoUrl = document.getElementById('celebPhotoUrl').value;
 
-   if (!name || hairColor.length === 0 || !occupation) {
+   if (!name || hairColor.length === 0 || !occupation || !gender) {
     alert('Пожалуйста, заполните обязательные поля');
     return;
    }
 
-   let photoData = null;
-   if (photoFile) {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-     photoData = e.target.result;
-     completeAdding();
-    };
-    reader.readAsDataURL(photoFile);
-   } else {
-    completeAdding();
-   }
+   completeAdding(photoUrl);
+  }
 
-   function completeAdding() {
-    const age = calculateAge(birthDate);
-    const zodiac = getZodiacSign(birthDate);
+  function completeAdding(photoUrl) {
+   const age = calculateAge(birthDate);
+   const zodiac = getZodiacSign(birthDate);
 
-    // Сохраняем старое фото при редактировании
-    const existingPhoto = editingId ? celebrities.find(c => c.id === editingId)?.photo : null;
+   const existingPhoto = editingId ? celebrities.find(c => c.id === editingId)?.photo : null;
 
-    const newCelebrity = {
-     id: editingId || Date.now(),
-     name: name,
-     birthDate: birthDate,
-     age: age,
-     height: height || null,
-     hairColor: hairColor,
-     eyeColor: eyeColor,
-     ethnicity: ethnicity || null,
-     citizenship: [...selectedCountries],
-     occupation: occupation,
-     zodiac: zodiac,
-     // Ключевое изменение: сохраняем старое фото если новое не выбрано
-     photo: photoData || existingPhoto || `https://via.placeholder.com/300x200/6c757d/ffffff?text=${encodeURIComponent(name)}`,
-     createdAt: new Date().toISOString()
-    };
+   const newCelebrity = {
+    id: editingId || Date.now(),
+    name: name,
+    birthDate: birthDate,
+    age: age,
+    height: height || null,
+    gender: gender,
+    hairColor: hairColor,
+    eyeColor: eyeColor,
+    ethnicity: ethnicity || null,
+    citizenship: [...selectedCountries],
+    occupation: occupation,
+    zodiac: zodiac,
+    photo: photoUrl || existingPhoto || `https://via.placeholder.com/300x200/6c757d/ffffff?text=${encodeURIComponent(name)}`,
+    createdAt: new Date().toISOString()
+   };
 
-    if (editingId) {
-     // Заменяем существующую запись
-     const index = celebrities.findIndex(c => c.id === editingId);
-     if (index !== -1) {
-      celebrities[index] = newCelebrity;
-     }
-    } else {
-     // Добавляем новую запись
-     celebrities.push(newCelebrity);
+   if (editingId) {
+    const index = celebrities.findIndex(c => c.id === editingId);
+    if (index !== -1) {
+     celebrities[index] = newCelebrity;
     }
-
-    saveData();
-    renderCelebrities();
-    resetForm();
-
-    alert(editingId ? 'Знаменитость обновлена!' : 'Знаменитость добавлена!');
+   } else {
+    celebrities.push(newCelebrity);
    }
+
+   saveData();
+   renderCelebrities();
+   resetForm();
+
+   alert(editingId ? 'Знаменитость обновлена!' : 'Знаменитость добавлена!');
   }
 
   function resetForm() {
    document.getElementById('celebName').value = '';
    document.getElementById('celebBirthDate').value = '';
    document.getElementById('celebHeight').value = '';
+   document.getElementById('celebPhotoUrl').value = '';
+   document.getElementById('photoPreview').style.display = 'none';
+   document.querySelectorAll('input[name="celebGender"]').forEach(radio => {
+    radio.checked = false;
+   });
    document.getElementById('celebHairColor').selectedIndex = -1;
    document.getElementById('celebEyeColor').selectedIndex = -1;
    document.getElementById('celebEthnicity').value = '';
    document.getElementById('celebOccupation').value = '';
-   document.getElementById('celebPhoto').value = '';
-   document.getElementById('photoPreview').style.display = 'none';
    document.getElementById('countrySearch').value = '';
    selectedCountries = [];
    selectedEyeColors = [];
@@ -853,8 +858,30 @@
    document.getElementById('cancelEditBtn').style.display = 'none';
   }
 
+  // ===== ФУНКЦИИ СОРТИРОВКИ =====
+  function getSortedCelebrities() {
+   const sortOrder = document.getElementById('sortOrder').value;
+   localStorage.setItem('celebritiesSortOrder', sortOrder);
+
+   const sorted = [...celebrities];
+
+   switch (sortOrder) {
+    case 'added_asc':
+     return sorted.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    case 'added_desc':
+     return sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    case 'name_asc':
+     return sorted.sort((a, b) => a.name.localeCompare(b.name));
+    case 'name_desc':
+     return sorted.sort((a, b) => b.name.localeCompare(a.name));
+    default:
+     return sorted;
+   }
+  }
+
   function renderCelebrities() {
-   renderFilteredCelebrities(celebrities);
+   const sortedData = getSortedCelebrities();
+   renderFilteredCelebrities(sortedData);
   }
 
   function renderFilteredCelebrities(data) {
@@ -893,8 +920,11 @@
                              </div>
                              
                              <div class="mb-2">
-                                 ${celeb.age ? `<span class="badge bg-primary">${celeb.age} лет</span>` : ''}
-                                 ${celeb.zodiac ? `<span class="badge bg-info">${celeb.zodiac}</span>` : ''}
+                                 ${celeb.gender ? `<span class="badge ${celeb.gender === 'male' ? 'bg-primary' : 'bg-danger'}">
+                                     ${celeb.gender === 'male' ? '♂ Мужской' : '♀ Женский'}
+                                 </span>` : ''}
+                                 ${celeb.age ? `<span class="badge bg-info">${celeb.age} лет</span>` : ''}
+                                 ${celeb.zodiac ? `<span class="badge bg-warning">${celeb.zodiac}</span>` : ''}
                                  ${celeb.height ? `<span class="badge bg-secondary">${celeb.height} см</span>` : ''}
                              </div>
                              
@@ -945,6 +975,7 @@
    const ageMax = parseInt(document.getElementById('filterAgeMax').value) || 120;
    const heightMin = parseInt(document.getElementById('filterHeightMin').value) || 0;
    const heightMax = parseInt(document.getElementById('filterHeightMax').value) || 250;
+   const genderFilter = document.getElementById('filterGender').value;
 
    const filtered = celebrities.filter(celeb => {
     return (
@@ -956,7 +987,8 @@
      (zodiacFilter === '' || celeb.zodiac === zodiacFilter) &&
      (citizenshipFilter === '' || (celeb.citizenship && celeb.citizenship.some(c => c.toLowerCase().includes(citizenshipFilter)))) &&
      (celeb.age === null || (celeb.age >= ageMin && celeb.age <= ageMax)) &&
-     (celeb.height === null || (celeb.height >= heightMin && celeb.height <= heightMax))
+     (celeb.height === null || (celeb.height >= heightMin && celeb.height <= heightMax)) &&
+     (genderFilter === '' || celeb.gender === genderFilter)
     );
    });
 
@@ -975,6 +1007,7 @@
    document.getElementById('filterAgeMax').value = '';
    document.getElementById('filterHeightMin').value = '';
    document.getElementById('filterHeightMax').value = '';
+   document.getElementById('filterGender').value = '';
 
    renderCelebrities();
   }
