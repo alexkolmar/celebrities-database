@@ -144,8 +144,12 @@
       <img id="photoPreview" class="photo-preview" style="display:none;">
      </div>
 
-     <button class="btn btn-purple w-100" onclick="addCelebrity()">
+     <button class="btn btn-purple w-100" id="submitButton" onclick="handleSubmit()">
       <i class="fas fa-plus me-1"></i> Добавить знаменитость
+     </button>
+     <button class="btn btn-outline-secondary w-100 mt-2" id="cancelEditButton" onclick="cancelEdit()"
+      style="display: none;">
+      <i class="fas fa-times me-1"></i> Отменить редактирование
      </button>
     </details>
 
@@ -346,6 +350,7 @@
 
   let selectedCountries = [];
   let selectedEyeColors = [];
+  let editingCelebrityId = null; // Для хранения ID редактируемой карточки
 
   // ===== ОСНОВНЫЕ ФУНКЦИИ =====
   let celebrities = [];
@@ -682,6 +687,7 @@
   }
 
   function resetForm() {
+   if (editingCelebrityId) return;
    document.getElementById('celebName').value = '';
    document.getElementById('celebBirthDate').value = '';
    document.getElementById('celebHeight').value = '';
@@ -775,6 +781,14 @@
                     <div class="card">
                         <img src="${celeb.photo}" class="celebrity-img" alt="${celeb.name}" onerror="this.src='https://placeholder.darth-kolmar.workers.dev?w=300&h=200&bg=cccccc&fg=333333&txt=${encodeURIComponent(celeb.name)}'">
                         <div class="card-body">
+                         <div class="card-actions" style="position: absolute; top: 10px; right: 10px;">
+                <button class="btn btn-sm btn-outline-primary me-1" onclick="editCelebrity(${celeb.id})">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteCelebrity(${celeb.id})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
                             <h5 class="card-title">${celeb.name}</h5>
                             
                             <div class="mb-2">
@@ -913,4 +927,127 @@
     alert('❌ Ошибка при сохранении: ' + error.message);
    }
   }
+
+   // ===== ФУНКЦИИ РЕДАКТИРОВАНИЯ И УДАЛЕНИЯ =====
+   function handleSubmit() {
+    if (editingCelebrityId) {
+     updateCelebrity();
+    } else {
+     addCelebrity();
+    }
+   }
+
+   function editCelebrity(id) {
+    const celeb = celebrities.find(c => c.id === id);
+    if (!celeb) return;
+
+    // Заполняем форму данными
+    document.getElementById('celebName').value = celeb.name;
+    document.getElementById('celebBirthDate').value = celeb.birthDate || '';
+    document.getElementById('celebHeight').value = celeb.height || '';
+
+    // Цвет волос
+    const hairSelect = document.getElementById('celebHairColor');
+    Array.from(hairSelect.options).forEach(option => {
+     option.selected = celeb.hairColor.includes(option.value);
+    });
+
+    // Цвет глаз
+    const eyeSelect = document.getElementById('celebEyeColor');
+    Array.from(eyeSelect.options).forEach(option => {
+     option.selected = celeb.eyeColor.includes(option.value);
+    });
+    updateSelectedEyeColors();
+
+    document.getElementById('celebEthnicity').value = celeb.ethnicity || '';
+
+    // Гражданство
+    selectedCountries = [...celeb.citizenship];
+    updateSelectedCountries();
+
+    // Пол
+    document.querySelectorAll('input[name="celebGender"]').forEach(radio => {
+     radio.checked = (radio.value === celeb.gender);
+    });
+
+    document.getElementById('celebOccupation').value = celeb.occupation;
+    document.getElementById('celebPhotoUrl').value = celeb.photo;
+    document.getElementById('photoPreview').src = celeb.photo;
+    document.getElementById('photoPreview').style.display = 'block';
+
+    // Меняем режим на редактирование
+    editingCelebrityId = id;
+    document.getElementById('submitButton').innerHTML = '<i class="fas fa-save me-1"></i> Сохранить изменения';
+    document.getElementById('cancelEditButton').style.display = 'block';
+
+    // Прокручиваем к форме
+    document.querySelector('.add-form').open = true;
+    document.querySelector('.add-form').scrollIntoView({ behavior: 'smooth' });
+   }
+
+   function updateCelebrity() {
+    const celebIndex = celebrities.findIndex(c => c.id === editingCelebrityId);
+    if (celebIndex === -1) return;
+
+    // Получаем данные из формы (как в addCelebrity)
+    const name = document.getElementById('celebName').value;
+    const birthDate = document.getElementById('celebBirthDate').value;
+    const height = document.getElementById('celebHeight').value;
+    const hairColor = Array.from(document.getElementById('celebHairColor').selectedOptions)
+     .map(opt => opt.value);
+    const eyeColor = selectedEyeColors;
+    const ethnicity = document.getElementById('celebEthnicity').value;
+    const occupation = document.getElementById('celebOccupation').value;
+    const gender = document.querySelector('input[name="celebGender"]:checked')?.value;
+    const photoUrl = document.getElementById('celebPhotoUrl').value;
+
+    if (!name || hairColor.length === 0 || !occupation || !gender) {
+     alert('Пожалуйста, заполните обязательные поля');
+     return;
+    }
+
+    const age = calculateAge(birthDate);
+    const zodiac = getZodiacSign(birthDate);
+
+    // Обновляем карточку
+    celebrities[celebIndex] = {
+     ...celebrities[celebIndex],
+     name,
+     birthDate,
+     age,
+     height: height || null,
+     hairColor,
+     eyeColor,
+     ethnicity: ethnicity || null,
+     citizenship: [...selectedCountries],
+     occupation,
+     gender,
+     zodiac,
+     photo: photoUrl || `https://placeholder.darth-kolmar.workers.dev?w=300&h=200&bg=cccccc&fg=333333&txt=${encodeURIComponent(name)}`
+    };
+
+    saveData();
+    renderCelebrities();
+    cancelEdit();
+    alert('Изменения сохранены!');
+   }
+
+   function cancelEdit() {
+    editingCelebrityId = null;
+    document.getElementById('submitButton').innerHTML = '<i class="fas fa-plus me-1"></i> Добавить знаменитость';
+    document.getElementById('cancelEditButton').style.display = 'none';
+    resetForm();
+   }
+
+   function deleteCelebrity(id) {
+    if (!confirm('Удалить эту знаменитость из базы?')) return;
+
+    celebrities = celebrities.filter(c => c.id !== id);
+    saveData();
+    renderCelebrities();
+    alert('Знаменитость удалена!');
+   }
  </script>
+
+</body>
+</html>
