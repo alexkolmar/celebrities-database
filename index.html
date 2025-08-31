@@ -128,7 +128,7 @@
       <select class="form-select" id="celebOccupation" required>
        <option value="">Выберите сферу</option>
        <option value="актёр">Актёр</option>
-       <option value="певец">Певец</option>
+       <option value="музыкант">Музыкант</option>
        <option value="спортсмен">Спортсмен</option>
        <option value="модель">Модель</option>
        <option value="блогер">Блогер</option>
@@ -191,7 +191,7 @@
        <select class="form-select" id="filterOccupation">
         <option value="">Все</option>
         <option value="актёр">Актёр</option>
-        <option value="певец">Певец</option>
+        <option value="музыкант">Музыкант</option>
         <option value="спортсмен">Спортсмен</option>
         <option value="модель">Модель</option>
         <option value="блогер">Блогер</option>
@@ -766,7 +766,7 @@
      (hairColor === 'седая' && celeb.hairColor.includes('седой'))) &&
      (!occupation || celeb.occupation === occupation ||
       (occupation === 'актёр' && celeb.occupation === 'актриса') ||
-      (occupation === 'певец' && celeb.occupation === 'певица') ||
+      (occupation === 'музыкант' && celeb.occupation === 'музыкант') ||
       (occupation === 'спортсмен' && celeb.occupation === 'спортсменка') ||
       (occupation === 'блогер' && celeb.occupation === 'блогерша')) &&
      (!gender || celeb.gender === gender) &&
@@ -1094,7 +1094,7 @@
   function getGenderOccupation(occupation, gender) {
    const occupations = {
     'актёр': { мужчина: 'актёр', женщина: 'актриса' },
-    'певец': { мужчина: 'певец', женщина: 'певица' },
+    'музыкант': { мужчина: 'музыкант', женщина: 'музыкант' },
     'спортсмен': { мужчина: 'спортсмен', женщина: 'спортсменка' },
     'модель': { мужчина: 'модель', женщина: 'модель' },
     'блогер': { мужчина: 'блогер', женщина: 'блогерша' },
