@@ -25,7 +25,9 @@
    <!-- Форма добавления -->
    <div class="col-lg-5">
     <details class="add-form">
-     <summary><h4><i class="fas fa-plus-circle feature-icon"></i>Добавить знаменитость</h4></summary>
+     <summary>
+      <h4><i class="fas fa-plus-circle feature-icon"></i>Добавить знаменитость</h4>
+     </summary>
 
      <div class="mb-3">
       <label class="form-label">Имя *</label>
@@ -104,6 +106,24 @@
      </div>
 
      <div class="mb-3">
+      <label class="form-label">Пол *</label>
+      <div class="d-flex gap-4">
+       <div class="form-check">
+        <input class="form-check-input" type="radio" name="celebGender" id="genderMale" value="мужчина" required>
+        <label class="form-check-label" for="genderMale">
+         <i class="fas fa-mars text-primary me-1"></i>Мужчина
+        </label>
+       </div>
+       <div class="form-check">
+        <input class="form-check-input" type="radio" name="celebGender" id="genderFemale" value="женщина">
+        <label class="form-check-label" for="genderFemale">
+         <i class="fas fa-venus text-danger me-1"></i>Женщина
+        </label>
+       </div>
+      </div>
+     </div>
+
+     <div class="mb-3">
       <label class="form-label">Сфера деятельности *</label>
       <select class="form-select" id="celebOccupation" required>
        <option value="">Выберите сферу</option>
@@ -172,6 +192,15 @@
         <option value="другое">Другое</option>
        </select>
       </div>
+     </div>
+
+     <div class="col-md-6 mb-3">
+      <label class="form-label">Пол</label>
+      <select class="form-select" id="filterGender">
+       <option value="">Все</option>
+       <option value="мужчина">Мужчина</option>
+       <option value="женщина">Женщина</option>
+      </select>
      </div>
 
      <!-- ФИЛЬТР ПО ЦВЕТУ ГЛАЗ -->
@@ -560,6 +589,16 @@
      updateSelectedEyeColors();
     });
    }
+
+   // Валидация radio кнопок ← ДОБАВЬ ЭТОТ БЛОК
+   document.querySelectorAll('input[name="celebGender"]').forEach(radio => {
+    radio.addEventListener('change', function () {
+     document.querySelectorAll('input[name="celebGender"]').forEach(r => {
+      r.closest('.form-check').classList.remove('is-invalid');
+     });
+    });
+   });
+
   }
 
   function getZodiacSign(birthDate) {
@@ -606,6 +645,7 @@
    const eyeColor = selectedEyeColors;
    const ethnicity = document.getElementById('celebEthnicity').value;
    const occupation = document.getElementById('celebOccupation').value;
+   const gender = document.querySelector('input[name="celebGender"]:checked')?.value;
    const photoUrl = document.getElementById('celebPhotoUrl').value;
 
    if (!name || hairColor.length === 0 || !occupation) {
@@ -627,6 +667,7 @@
     ethnicity: ethnicity || null,
     citizenship: [...selectedCountries],
     occupation: occupation,
+    gender: gender,
     zodiac: zodiac,
     photo: photoUrl || `https://placeholder.darth-kolmar.workers.dev?w=300&h=200&bg=cccccc&fg=333333&txt=${encodeURIComponent(name)}`,
     createdAt: new Date().toISOString()
@@ -648,6 +689,9 @@
    document.getElementById('celebEyeColor').selectedIndex = -1;
    document.getElementById('celebEthnicity').value = '';
    document.getElementById('celebOccupation').value = '';
+   document.querySelectorAll('input[name="celebGender"]').forEach(radio => {
+    radio.checked = false;
+   });
    document.getElementById('celebPhotoUrl').value = '';
    document.getElementById('photoPreview').style.display = 'none';
    document.getElementById('countrySearch').value = '';
@@ -660,6 +704,7 @@
   function resetFilters() {
    document.getElementById('filterHairColor').value = '';
    document.getElementById('filterOccupation').value = '';
+   document.getElementById('filterGender').value = '';
    document.getElementById('filterEyeColor').value = '';
    document.getElementById('filterEthnicity').value = '';
    document.getElementById('filterZodiac').value = '';
@@ -676,6 +721,7 @@
   function applyFilters() {
    const hairColor = document.getElementById('filterHairColor').value;
    const occupation = document.getElementById('filterOccupation').value;
+   const gender = document.getElementById('filterGender').value;
    const eyeColor = document.getElementById('filterEyeColor').value;
    const ethnicity = document.getElementById('filterEthnicity').value;
    const zodiac = document.getElementById('filterZodiac').value;
@@ -689,6 +735,7 @@
    let filtered = celebrities.filter(celeb => {
     return (!hairColor || celeb.hairColor.includes(hairColor)) &&
      (!occupation || celeb.occupation === occupation) &&
+     (!gender || celeb.gender === gender) &&
      (!eyeColor || (celeb.eyeColor && celeb.eyeColor.includes(eyeColor))) &&
      (!ethnicity || celeb.ethnicity === ethnicity) &&
      (!zodiac || celeb.zodiac === zodiac) &&
@@ -737,9 +784,12 @@
                             </div>
                             
                             <div class="mb-2">
-                                ${celeb.hairColor.map(color => `<span class="badge bg-purple">${color}</span>`).join('')}
-                                <span class="badge bg-success">${celeb.occupation}</span>
-                            </div>
+    ${celeb.hairColor.map(color => `<span class="badge bg-purple">${color}</span>`).join('')}
+    <span class="badge bg-success">${celeb.occupation}</span>
+    ${celeb.gender === 'мужчина' ?
+      '<span class="badge bg-primary"><i class="fas fa-mars me-1"></i>Мужчина</span>' :
+      '<span class="badge bg-danger"><i class="fas fa-venus me-1"></i>Женщина</span>'}
+</div>
                             
                             ${celeb.eyeColor && celeb.eyeColor.length > 0 ?
       `<div class="mb-2">
