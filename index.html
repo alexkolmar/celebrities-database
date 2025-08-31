@@ -146,7 +146,7 @@
 
     <!-- Добавьте этот блок после кнопки "Добавить знаменитость" -->
     <div class="mt-3">
-     <input type="text" class="form-control mb-2" id="gistIdInput" placeholder="Введите ID Gist">
+     <input type="text" class="form-control mb-2" id="gistIdInput" value="a69c7957121ab29b4ed27368671fbbda" readonly>
      <button class="btn btn-success w-100 mb-2" onclick="loadFromGist()">
       📥 Загрузить из Gist
      </button>
@@ -405,11 +405,6 @@
    document.getElementById('celebName').value = celeb.name;
    document.getElementById('celebBirthDate').value = celeb.birthDate || '';
    document.getElementById('celebHeight').value = celeb.height || '';
-
-   // Пол
-   if (celeb.gender) {
-    document.querySelector(`input[name="celebGender"][value="${celeb.gender}"]`).checked = true;
-   }
 
    // Цвет волос
    const hairColorSelect = document.getElementById('celebHairColor');
@@ -771,7 +766,6 @@
    const name = document.getElementById('celebName').value;
    const birthDate = document.getElementById('celebBirthDate').value;
    const height = document.getElementById('celebHeight').value;
-   const gender = document.querySelector('input[name="celebGender"]:checked')?.value;
    const hairColor = Array.from(document.getElementById('celebHairColor').selectedOptions)
     .map(opt => opt.value);
    const eyeColor = selectedEyeColors;
@@ -779,7 +773,7 @@
    const occupation = document.getElementById('celebOccupation').value;
    const photoFile = document.getElementById('celebPhoto').files[0];
 
-   if (!name || hairColor.length === 0 || !occupation || !gender) {
+   if (!name || hairColor.length === 0 || !occupation) {
     alert('Пожалуйста, заполните обязательные поля');
     return;
    }
@@ -800,24 +794,19 @@
     const age = calculateAge(birthDate);
     const zodiac = getZodiacSign(birthDate);
 
-    // Сохраняем старое фото при редактировании
-    const existingPhoto = editingId ? celebrities.find(c => c.id === editingId)?.photo : null;
-
     const newCelebrity = {
      id: editingId || Date.now(),
      name: name,
      birthDate: birthDate,
      age: age,
      height: height || null,
-     gender: gender,
      hairColor: hairColor,
      eyeColor: eyeColor,
      ethnicity: ethnicity || null,
      citizenship: [...selectedCountries],
      occupation: occupation,
      zodiac: zodiac,
-     // Ключевое изменение: сохраняем старое фото если новое не выбрано
-     photo: photoData || existingPhoto || `https://via.placeholder.com/300x200/6c757d/ffffff?text=${encodeURIComponent(name)}`,
+     photo: photoData || `https://via.placeholder.com/300x200/6c757d/ffffff?text=${encodeURIComponent(name)}`,
      createdAt: new Date().toISOString()
     };
 
@@ -838,54 +827,52 @@
 
     alert(editingId ? 'Знаменитость обновлена!' : 'Знаменитость добавлена!');
    }
+  }
 
-   function resetForm() {
-    document.getElementById('celebName').value = '';
-    document.getElementById('celebBirthDate').value = '';
-    document.getElementById('celebHeight').value = '';
-    document.querySelectorAll('input[name="celebGender"]').forEach(radio => {
-     radio.checked = false;
-    });
-    document.getElementById('celebHairColor').selectedIndex = -1;
-    document.getElementById('celebEyeColor').selectedIndex = -1;
-    document.getElementById('celebEthnicity').value = '';
-    document.getElementById('celebOccupation').value = '';
-    document.getElementById('celebPhoto').value = '';
-    document.getElementById('photoPreview').style.display = 'none';
-    document.getElementById('countrySearch').value = '';
-    selectedCountries = [];
-    selectedEyeColors = [];
-    updateSelectedCountries();
-    updateSelectedEyeColors();
+  function resetForm() {
+   document.getElementById('celebName').value = '';
+   document.getElementById('celebBirthDate').value = '';
+   document.getElementById('celebHeight').value = '';
+   document.getElementById('celebHairColor').selectedIndex = -1;
+   document.getElementById('celebEyeColor').selectedIndex = -1;
+   document.getElementById('celebEthnicity').value = '';
+   document.getElementById('celebOccupation').value = '';
+   document.getElementById('celebPhoto').value = '';
+   document.getElementById('photoPreview').style.display = 'none';
+   document.getElementById('countrySearch').value = '';
+   selectedCountries = [];
+   selectedEyeColors = [];
+   updateSelectedCountries();
+   updateSelectedEyeColors();
 
-    editingId = null;
-    document.getElementById('cancelEditBtn').style.display = 'none';
-   }
+   editingId = null;
+   document.getElementById('cancelEditBtn').style.display = 'none';
+  }
 
-   function renderCelebrities() {
-    renderFilteredCelebrities(celebrities);
-   }
+  function renderCelebrities() {
+   renderFilteredCelebrities(celebrities);
+  }
 
-   function renderFilteredCelebrities(data) {
-    const container = document.getElementById('celebritiesList');
-    container.innerHTML = '';
-    updateCount();
+  function renderFilteredCelebrities(data) {
+   const container = document.getElementById('celebritiesList');
+   container.innerHTML = '';
+   updateCount();
 
-    if (data.length === 0) {
-     container.innerHTML = `
+   if (data.length === 0) {
+    container.innerHTML = `
                      <div class="col-12 text-center py-5">
                          <i class="fas fa-search fa-3x mb-3 text-muted"></i>
                          <h5 class="text-muted">Ничего не найдено</h5>
                          <p class="text-muted">Попробуйте изменить параметры фильтрации</p>
                      </div>
                  `;
-     return;
-    }
+    return;
+   }
 
-    data.forEach(celeb => {
-     const card = document.createElement('div');
-     card.className = 'col-md-6 mb-4';
-     card.innerHTML = `
+   data.forEach(celeb => {
+    const card = document.createElement('div');
+    card.className = 'col-md-6 mb-4';
+    card.innerHTML = `
                      <div class="card">
                          <img src="${celeb.photo}" class="celebrity-img" alt="${celeb.name}">
                          <div class="card-body">
@@ -902,11 +889,8 @@
                              </div>
                              
                              <div class="mb-2">
-                                 ${celeb.gender ? `<span class="badge ${celeb.gender === 'male' ? 'bg-primary' : 'bg-danger'}">
-                                     ${celeb.gender === 'male' ? '♂ Мужской' : '♀ Женский'}
-                                 </span>` : ''}
-                                 ${celeb.age ? `<span class="badge bg-info">${celeb.age} лет</span>` : ''}
-                                 ${celeb.zodiac ? `<span class="badge bg-warning">${celeb.zodiac}</span>` : ''}
+                                 ${celeb.age ? `<span class="badge bg-primary">${celeb.age} лет</span>` : ''}
+                                 ${celeb.zodiac ? `<span class="badge bg-info">${celeb.zodiac}</span>` : ''}
                                  ${celeb.height ? `<span class="badge bg-secondary">${celeb.height} см</span>` : ''}
                              </div>
                              
@@ -916,83 +900,80 @@
                              </div>
                              
                              ${celeb.eyeColor && celeb.eyeColor.length > 0 ?
-       `<div class="mb-2">
+      `<div class="mb-2">
                                      <span class="badge bg-info">👁️ ${celeb.eyeColor.map(getEyeColorLabel).join(', ')}</span>
                                  </div>` : ''}
                              
                              ${celeb.ethnicity ? `<div class="mb-1"><small>Происхождение: ${getEthnicityLabel(celeb.ethnicity)}</small></div>` : ''}
                              ${celeb.citizenship && celeb.citizenship.length > 0 ?
-       `<div class="mb-1"><small>Гражданство: ${celeb.citizenship.map(c => {
-        const country = countries.find(cnt => cnt.name === c);
-        return (country ? country.flag + ' ' : '') + c;
-       }).join(', ')}</small></div>` : ''}
+      `<div class="mb-1"><small>Гражданство: ${celeb.citizenship.map(c => {
+       const country = countries.find(cnt => cnt.name === c);
+       return (country ? country.flag + ' ' : '') + c;
+      }).join(', ')}</small></div>` : ''}
                          </div>
                      </div>
                  `;
-     container.appendChild(card);
-    });
-   }
+    container.appendChild(card);
+   });
+  }
 
-   function getEthnicityLabel(value) {
-    const labels = {
-     'european': 'Европейское', 'east-asian': 'Восточноазиатское',
-     'south-asian': 'Южноазиатское', 'african': 'Африканское',
-     'latin': 'Латиноамериканское', 'middle-eastern': 'Ближневосточное',
-     'indigenous': 'Коренные народы Америки', 'pacific': 'Океанийское',
-     'mixed': 'Смешанное', 'other': 'Другое'
-    };
-    return labels[value] || value;
-   }
+  function getEthnicityLabel(value) {
+   const labels = {
+    'european': 'Европейское', 'east-asian': 'Восточноазиатское',
+    'south-asian': 'Южноазиатское', 'african': 'Африканское',
+    'latin': 'Латиноамериканское', 'middle-eastern': 'Ближневосточное',
+    'indigenous': 'Коренные народы Америки', 'pacific': 'Океанийское',
+    'mixed': 'Смешанное', 'other': 'Другое'
+   };
+   return labels[value] || value;
+  }
 
-   // Функции фильтрации
-   function applyFilters() {
-    const nameFilter = document.getElementById('filterName').value.toLowerCase();
-    const hairColorFilter = document.getElementById('filterHairColor').value;
-    const occupationFilter = document.getElementById('filterOccupation').value;
-    const eyeColorFilter = document.getElementById('filterEyeColor').value;
-    const ethnicityFilter = document.getElementById('filterEthnicity').value;
-    const zodiacFilter = document.getElementById('filterZodiac').value;
-    const citizenshipFilter = document.getElementById('filterCitizenship').value.toLowerCase();
-    const ageMin = parseInt(document.getElementById('filterAgeMin').value) || 0;
-    const ageMax = parseInt(document.getElementById('filterAgeMax').value) || 120;
-    const heightMin = parseInt(document.getElementById('filterHeightMin').value) || 0;
-    const heightMax = parseInt(document.getElementById('filterHeightMax').value) || 250;
-    const genderFilter = document.getElementById('filterGender').value;
+  // Функции фильтрации
+  function applyFilters() {
+   const nameFilter = document.getElementById('filterName').value.toLowerCase();
+   const hairColorFilter = document.getElementById('filterHairColor').value;
+   const occupationFilter = document.getElementById('filterOccupation').value;
+   const eyeColorFilter = document.getElementById('filterEyeColor').value;
+   const ethnicityFilter = document.getElementById('filterEthnicity').value;
+   const zodiacFilter = document.getElementById('filterZodiac').value;
+   const citizenshipFilter = document.getElementById('filterCitizenship').value.toLowerCase();
+   const ageMin = parseInt(document.getElementById('filterAgeMin').value) || 0;
+   const ageMax = parseInt(document.getElementById('filterAgeMax').value) || 120;
+   const heightMin = parseInt(document.getElementById('filterHeightMin').value) || 0;
+   const heightMax = parseInt(document.getElementById('filterHeightMax').value) || 250;
 
-    const filtered = celebrities.filter(celeb => {
-     return (
-      (nameFilter === '' || celeb.name.toLowerCase().includes(nameFilter)) &&
-      (hairColorFilter === '' || celeb.hairColor.includes(hairColorFilter)) &&
-      (occupationFilter === '' || celeb.occupation === occupationFilter) &&
-      (eyeColorFilter === '' || (celeb.eyeColor && celeb.eyeColor.includes(eyeColorFilter))) &&
-      (ethnicityFilter === '' || celeb.ethnicity === ethnicityFilter) &&
-      (zodiacFilter === '' || celeb.zodiac === zodiacFilter) &&
-      (citizenshipFilter === '' || (celeb.citizenship && celeb.citizenship.some(c => c.toLowerCase().includes(citizenshipFilter)))) &&
-      (celeb.age === null || (celeb.age >= ageMin && celeb.age <= ageMax)) &&
-      (celeb.height === null || (celeb.height >= heightMin && celeb.height <= heightMax)) &&
-      (genderFilter === '' || celeb.gender === genderFilter)
-     );
-    });
+   const filtered = celebrities.filter(celeb => {
+    return (
+     (nameFilter === '' || celeb.name.toLowerCase().includes(nameFilter)) &&
+     (hairColorFilter === '' || celeb.hairColor.includes(hairColorFilter)) &&
+     (occupationFilter === '' || celeb.occupation === occupationFilter) &&
+     (eyeColorFilter === '' || (celeb.eyeColor && celeb.eyeColor.includes(eyeColorFilter))) &&
+     (ethnicityFilter === '' || celeb.ethnicity === ethnicityFilter) &&
+     (zodiacFilter === '' || celeb.zodiac === zodiacFilter) &&
+     (citizenshipFilter === '' || (celeb.citizenship && celeb.citizenship.some(c => c.toLowerCase().includes(citizenshipFilter)))) &&
+     (celeb.age === null || (celeb.age >= ageMin && celeb.age <= ageMax)) &&
+     (celeb.height === null || (celeb.height >= heightMin && celeb.height <= heightMax))
+    );
+   });
 
-    renderFilteredCelebrities(filtered);
-   }
+   renderFilteredCelebrities(filtered);
+  }
 
-   function resetFilters() {
-    document.getElementById('filterName').value = '';
-    document.getElementById('filterHairColor').value = '';
-    document.getElementById('filterOccupation').value = '';
-    document.getElementById('filterEyeColor').value = '';
-    document.getElementById('filterEthnicity').value = '';
-    document.getElementById('filterZodiac').value = '';
-    document.getElementById('filterCitizenship').value = '';
-    document.getElementById('filterAgeMin').value = '';
-    document.getElementById('filterAgeMax').value = '';
-    document.getElementById('filterHeightMin').value = '';
-    document.getElementById('filterHeightMax').value = '';
-    document.getElementById('filterGender').value = '';
+  function resetFilters() {
+   document.getElementById('filterName').value = '';
+   document.getElementById('filterHairColor').value = '';
+   document.getElementById('filterOccupation').value = '';
+   document.getElementById('filterEyeColor').value = '';
+   document.getElementById('filterEthnicity').value = '';
+   document.getElementById('filterZodiac').value = '';
+   document.getElementById('filterCitizenship').value = '';
+   document.getElementById('filterAgeMin').value = '';
+   document.getElementById('filterAgeMax').value = '';
+   document.getElementById('filterHeightMin').value = '';
+   document.getElementById('filterHeightMax').value = '';
 
-    renderCelebrities();
-   }
+   renderCelebrities();
+  }
  </script>
 </body>
 
