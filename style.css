@@ -10,11 +10,11 @@ body {
  padding-bottom: 50px;
 }
 
-details.add-form summary {
+details.add-form summary, details.filter-section summary {
  display: flex;
 }
 
-details.add-form[open] summary {
+details.add-form[open] summary, details.filter-section[open] summary {
  margin-bottom: 0.5rem;
 }
  
