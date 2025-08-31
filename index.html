@@ -15,9 +15,8 @@
  <nav class="navbar navbar-dark bg-dark mb-4">
   <div class="container">
    <span class="navbar-brand mb-0 h1">
-    <i class="fas fa-star me-2"></i>База знаменитостей (Локальная версия)
+    <i class="fas fa-star me-2"></i>База знаменитостей
    </span>
-  </div>
  </nav>
 
  <div class="container">
@@ -41,6 +40,24 @@
      <div class="mb-3 optional-field">
       <label class="form-label">Рост (см)</label>
       <input type="number" class="form-control" id="celebHeight" placeholder="Не указано">
+     </div>
+     <!-- Добавьте этот блок после поля "Рост" -->
+     <div class="mb-3">
+      <label class="form-label">Пол *</label>
+      <div class="d-flex gap-3">
+       <div class="form-check">
+        <input class="form-check-input" type="radio" name="celebGender" id="genderMale" value="male" required>
+        <label class="form-check-label" for="genderMale">
+         <i class="fas fa-mars text-primary"></i> Мужской
+        </label>
+       </div>
+       <div class="form-check">
+        <input class="form-check-input" type="radio" name="celebGender" id="genderFemale" value="female">
+        <label class="form-check-label" for="genderFemale">
+         <i class="fas fa-venus text-danger"></i> Женский
+        </label>
+       </div>
+      </div>
      </div>
 
      <div class="mb-3">
@@ -68,7 +85,7 @@
        <option value="ореховые">🟤 Ореховые</option>
        <option value="фиолетовые">🟣 Фиолетовые</option>
        <option value="красные">🔴 Красные (альбинизм)</option>
-       <option value="черные">⚫ Черные</option>
+       <option value="чёрные">⚫ Чёрные</option>
        <option value="гетерохромия">👁️ Гетерохромия (разные глаза)</option>
        <option value="другое">❓ Другой цвет</option>
       </select>
@@ -107,11 +124,11 @@
       <label class="form-label">Сфера деятельности *</label>
       <select class="form-select" id="celebOccupation" required>
        <option value="">Выберите сферу</option>
-       <option value="актер">Актер</option>
+       <option value="актёр">Актёр</option>
        <option value="певец">Певец</option>
        <option value="спортсмен">Спортсмен</option>
        <option value="модель">Модель</option>
-       <option value="политик">Политик</option>
+       <option value="блогер">Блогер</option>
        <option value="другое">Другое</option>
       </select>
      </div>
@@ -161,14 +178,24 @@
        <label class="form-label">Сфера деятельности</label>
        <select class="form-select" id="filterOccupation">
         <option value="">Все</option>
-        <option value="актер">Актер</option>
+        <option value="актёр">Актёр</option>
         <option value="певец">Певец</option>
         <option value="спортсмен">Спортсмен</option>
         <option value="модель">Модель</option>
-        <option value="политик">Политик</option>
+        <option value="блогер">Блогер</option>
         <option value="другое">Другое</option>
        </select>
       </div>
+     </div>
+
+     <!-- Добавьте этот блок в секцию фильтров -->
+     <div class="col-md-6 mb-3">
+      <label class="form-label">Пол</label>
+      <select class="form-select" id="filterGender">
+       <option value="">Все</option>
+       <option value="male">Мужской</option>
+       <option value="female">Женский</option>
+      </select>
      </div>
 
      <!-- ФИЛЬТР ПО ЦВЕТУ ГЛАЗ -->
@@ -178,14 +205,14 @@
        <select class="form-select" id="filterEyeColor">
         <option value="">Все</option>
         <option value="голубые">Голубые</option>
-        <option value="зеленые">Зеленые</option>
+        <option value="зелёные">Зелёные</option>
         <option value="карие">Карие</option>
         <option value="серые">Серые</option>
         <option value="янтарные">Янтарные</option>
         <option value="ореховые">Ореховые</option>
         <option value="фиолетовые">Фиолетовые</option>
         <option value="красные">Красные</option>
-        <option value="черные">Черные</option>
+        <option value="чёрные">Чёрные</option>
         <option value="гетерохромия">Гетерохромия</option>
         <option value="другое">Другое</option>
        </select>
@@ -285,11 +312,30 @@
  <script>
   // ===== КОНФИГУРАЦИЯ =====
   const countries = [
-   { name: "Россия", flag: "🇷🇺" }, { name: "США", flag: "🇺🇸" },
-   { name: "Германия", flag: "🇩🇪" }, { name: "Франция", flag: "🇫🇷" },
-   { name: "Великобритания", flag: "🇬🇧" }, { name: "Италия", flag: "🇮🇹" },
-   { name: "Испания", flag: "🇪🇸" }, { name: "Китай", flag: "🇨🇳" },
-   { name: "Япония", flag: "🇯🇵" }, { name: "другое", flag: "🏳️" }
+   { name: "Россия", flag: "🇷🇺" },
+   { name: "США", flag: "🇺🇸" },
+   { name: "Германия", flag: "🇩🇪" },
+   { name: "Франция", flag: "🇫🇷" },
+   { name: "Великобритания", flag: "🇬🇧" },
+   { name: "Италия", flag: "🇮🇹" },
+   { name: "Испания", flag: "🇪🇸" },
+   { name: "Китай", flag: "🇨🇳" },
+   { name: "Япония", flag: "🇯🇵" },
+   { name: "Финляндия", flag: "🇫🇮" },
+   { name: "Швеция", flag: "🇸🇪" },
+   { name: "Норвегия", flag: "🇳🇴" },
+   { name: "Дания", flag: "🇩🇰" },
+   { name: "Канада", flag: "🇨🇦" },
+   { name: "Мексика", flag: "🇲🇽" },
+   { name: "Бразилия", flag: "🇧🇷" },
+   { name: "Аргентина", flag: "🇦🇷" },
+   { name: "Австралия", flag: "🇦🇺" },
+   { name: "Южная Корея", flag: "🇰🇷" },
+   { name: "Индия", flag: "🇮🇳" },
+   { name: "Турция", flag: "🇹🇷" },
+   { name: "Украина", flag: "🇺🇦" },
+   { name: "Казахстан", flag: "🇰🇿" },
+   { name: "другое", flag: "🏳️" }
   ];
 
   const zodiacSigns = [
@@ -359,6 +405,11 @@
    document.getElementById('celebName').value = celeb.name;
    document.getElementById('celebBirthDate').value = celeb.birthDate || '';
    document.getElementById('celebHeight').value = celeb.height || '';
+
+   // Пол
+   if (celeb.gender) {
+    document.querySelector(`input[name="celebGender"][value="${celeb.gender}"]`).checked = true;
+   }
 
    // Цвет волос
    const hairColorSelect = document.getElementById('celebHairColor');
@@ -615,7 +666,7 @@
     const badge = document.createElement('span');
     badge.className = 'badge bg-primary me-1 mb-1';
     badge.innerHTML = `${country ? country.flag : '🏳️'} ${countryName} 
-                    <span style="cursor:pointer; margin-left:5px;" onclick="removeCountry('${countryName}')">×</span>`;
+                     <span style="cursor:pointer; margin-left:5px;" onclick="removeCountry('${countryName}')">×</span>`;
     container.appendChild(badge);
    });
   }
@@ -643,7 +694,7 @@
     const badge = document.createElement('span');
     badge.className = 'badge eye-color-badge bg-light text-dark me-1 mb-1';
     badge.innerHTML = `${getEyeColorEmoji(color)} ${getEyeColorLabel(color)} 
-                    <span style="cursor:pointer; margin-left:5px;" onclick="removeEyeColor('${color}')">×</span>`;
+                     <span style="cursor:pointer; margin-left:5px;" onclick="removeEyeColor('${color}')">×</span>`;
     container.appendChild(badge);
    });
   }
@@ -720,6 +771,7 @@
    const name = document.getElementById('celebName').value;
    const birthDate = document.getElementById('celebBirthDate').value;
    const height = document.getElementById('celebHeight').value;
+   const gender = document.querySelector('input[name="celebGender"]:checked')?.value;
    const hairColor = Array.from(document.getElementById('celebHairColor').selectedOptions)
     .map(opt => opt.value);
    const eyeColor = selectedEyeColors;
@@ -727,7 +779,7 @@
    const occupation = document.getElementById('celebOccupation').value;
    const photoFile = document.getElementById('celebPhoto').files[0];
 
-   if (!name || hairColor.length === 0 || !occupation) {
+   if (!name || hairColor.length === 0 || !occupation || !gender) {
     alert('Пожалуйста, заполните обязательные поля');
     return;
    }
@@ -748,19 +800,24 @@
     const age = calculateAge(birthDate);
     const zodiac = getZodiacSign(birthDate);
 
+    // Сохраняем старое фото при редактировании
+    const existingPhoto = editingId ? celebrities.find(c => c.id === editingId)?.photo : null;
+
     const newCelebrity = {
      id: editingId || Date.now(),
      name: name,
      birthDate: birthDate,
      age: age,
      height: height || null,
+     gender: gender,
      hairColor: hairColor,
      eyeColor: eyeColor,
      ethnicity: ethnicity || null,
      citizenship: [...selectedCountries],
      occupation: occupation,
      zodiac: zodiac,
-     photo: photoData || `https://via.placeholder.com/300x200/6c757d/ffffff?text=${encodeURIComponent(name)}`,
+     // Ключевое изменение: сохраняем старое фото если новое не выбрано
+     photo: photoData || existingPhoto || `https://via.placeholder.com/300x200/6c757d/ffffff?text=${encodeURIComponent(name)}`,
      createdAt: new Date().toISOString()
     };
 
@@ -781,115 +838,161 @@
 
     alert(editingId ? 'Знаменитость обновлена!' : 'Знаменитость добавлена!');
    }
-  }
 
-  function resetForm() {
-   document.getElementById('celebName').value = '';
-   document.getElementById('celebBirthDate').value = '';
-   document.getElementById('celebHeight').value = '';
-   document.getElementById('celebHairColor').selectedIndex = -1;
-   document.getElementById('celebEyeColor').selectedIndex = -1;
-   document.getElementById('celebEthnicity').value = '';
-   document.getElementById('celebOccupation').value = '';
-   document.getElementById('celebPhoto').value = '';
-   document.getElementById('photoPreview').style.display = 'none';
-   document.getElementById('countrySearch').value = '';
-   selectedCountries = [];
-   selectedEyeColors = [];
-   updateSelectedCountries();
-   updateSelectedEyeColors();
+   function resetForm() {
+    document.getElementById('celebName').value = '';
+    document.getElementById('celebBirthDate').value = '';
+    document.getElementById('celebHeight').value = '';
+    document.querySelectorAll('input[name="celebGender"]').forEach(radio => {
+     radio.checked = false;
+    });
+    document.getElementById('celebHairColor').selectedIndex = -1;
+    document.getElementById('celebEyeColor').selectedIndex = -1;
+    document.getElementById('celebEthnicity').value = '';
+    document.getElementById('celebOccupation').value = '';
+    document.getElementById('celebPhoto').value = '';
+    document.getElementById('photoPreview').style.display = 'none';
+    document.getElementById('countrySearch').value = '';
+    selectedCountries = [];
+    selectedEyeColors = [];
+    updateSelectedCountries();
+    updateSelectedEyeColors();
 
-   editingId = null;
-   document.getElementById('cancelEditBtn').style.display = 'none';
-  }
-
-  function renderCelebrities() {
-   renderFilteredCelebrities(celebrities);
-  }
-
-  function renderFilteredCelebrities(data) {
-   const container = document.getElementById('celebritiesList');
-   container.innerHTML = '';
-   updateCount();
-
-   if (data.length === 0) {
-    container.innerHTML = `
-                    <div class="col-12 text-center py-5">
-                        <i class="fas fa-search fa-3x mb-3 text-muted"></i>
-                        <h5 class="text-muted">Ничего не найдено</h5>
-                        <p class="text-muted">Попробуйте изменить параметры фильтрации</p>
-                    </div>
-                `;
-    return;
+    editingId = null;
+    document.getElementById('cancelEditBtn').style.display = 'none';
    }
 
-   data.forEach(celeb => {
-    const card = document.createElement('div');
-    card.className = 'col-md-6 mb-4';
-    card.innerHTML = `
-                    <div class="card">
-                        <img src="${celeb.photo}" class="celebrity-img" alt="${celeb.name}">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <h5 class="card-title">${celeb.name}</h5>
-                                <div class="btn-group">
-                                    <button class="btn btn-sm btn-outline-primary" onclick="editCelebrity(${celeb.id})">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteCelebrity(${celeb.id})">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-2">
-                                ${celeb.age ? `<span class="badge bg-primary">${celeb.age} лет</span>` : ''}
-                                ${celeb.zodiac ? `<span class="badge bg-info">${celeb.zodiac}</span>` : ''}
-                                ${celeb.height ? `<span class="badge bg-secondary">${celeb.height} см</span>` : ''}
-                            </div>
-                            
-                            <div class="mb-2">
-                                ${celeb.hairColor.map(color => `<span class="badge bg-purple">${color}</span>`).join('')}
-                                <span class="badge bg-success">${celeb.occupation}</span>
-                            </div>
-                            
-                            ${celeb.eyeColor && celeb.eyeColor.length > 0 ?
-      `<div class="mb-2">
-                                    <span class="badge bg-info">👁️ ${celeb.eyeColor.map(getEyeColorLabel).join(', ')}</span>
-                                </div>` : ''}
-                            
-                            ${celeb.ethnicity ? `<div class="mb-1"><small>Происхождение: ${getEthnicityLabel(celeb.ethnicity)}</small></div>` : ''}
-                            ${celeb.citizenship && celeb.citizenship.length > 0 ?
-      `<div class="mb-1"><small>Гражданство: ${celeb.citizenship.map(c => {
-       const country = countries.find(cnt => cnt.name === c);
-       return (country ? country.flag + ' ' : '') + c;
-      }).join(', ')}</small></div>` : ''}
-                        </div>
-                    </div>
-                `;
-    container.appendChild(card);
-   });
-  }
+   function renderCelebrities() {
+    renderFilteredCelebrities(celebrities);
+   }
 
-  function getEthnicityLabel(value) {
-   const labels = {
-    'european': 'Европейское', 'east-asian': 'Восточноазиатское',
-    'south-asian': 'Южноазиатское', 'african': 'Африканское',
-    'latin': 'Латиноамериканское', 'middle-eastern': 'Ближневосточное',
-    'indigenous': 'Коренные народы Америки', 'pacific': 'Океанийское',
-    'mixed': 'Смешанное', 'other': 'Другое'
-   };
-   return labels[value] || value;
-  }
+   function renderFilteredCelebrities(data) {
+    const container = document.getElementById('celebritiesList');
+    container.innerHTML = '';
+    updateCount();
 
-  // Функции фильтрации (оставьте ваши существующие)
-  function applyFilters() {
-   // Ваша существующая реализация
-  }
+    if (data.length === 0) {
+     container.innerHTML = `
+                     <div class="col-12 text-center py-5">
+                         <i class="fas fa-search fa-3x mb-3 text-muted"></i>
+                         <h5 class="text-muted">Ничего не найдено</h5>
+                         <p class="text-muted">Попробуйте изменить параметры фильтрации</p>
+                     </div>
+                 `;
+     return;
+    }
 
-  function resetFilters() {
-   // Ваша существующая реализация
-  }
+    data.forEach(celeb => {
+     const card = document.createElement('div');
+     card.className = 'col-md-6 mb-4';
+     card.innerHTML = `
+                     <div class="card">
+                         <img src="${celeb.photo}" class="celebrity-img" alt="${celeb.name}">
+                         <div class="card-body">
+                             <div class="d-flex justify-content-between align-items-start">
+                                 <h5 class="card-title">${celeb.name}</h5>
+                                 <div class="btn-group">
+                                     <button class="btn btn-sm btn-outline-primary" onclick="editCelebrity(${celeb.id})">
+                                         <i class="fas fa-edit"></i>
+                                     </button>
+                                     <button class="btn btn-sm btn-outline-danger" onclick="deleteCelebrity(${celeb.id})">
+                                         <i class="fas fa-trash"></i>
+                                     </button>
+                                 </div>
+                             </div>
+                             
+                             <div class="mb-2">
+                                 ${celeb.gender ? `<span class="badge ${celeb.gender === 'male' ? 'bg-primary' : 'bg-danger'}">
+                                     ${celeb.gender === 'male' ? '♂ Мужской' : '♀ Женский'}
+                                 </span>` : ''}
+                                 ${celeb.age ? `<span class="badge bg-info">${celeb.age} лет</span>` : ''}
+                                 ${celeb.zodiac ? `<span class="badge bg-warning">${celeb.zodiac}</span>` : ''}
+                                 ${celeb.height ? `<span class="badge bg-secondary">${celeb.height} см</span>` : ''}
+                             </div>
+                             
+                             <div class="mb-2">
+                                 ${celeb.hairColor.map(color => `<span class="badge bg-purple">${color}</span>`).join('')}
+                                 <span class="badge bg-success">${celeb.occupation}</span>
+                             </div>
+                             
+                             ${celeb.eyeColor && celeb.eyeColor.length > 0 ?
+       `<div class="mb-2">
+                                     <span class="badge bg-info">👁️ ${celeb.eyeColor.map(getEyeColorLabel).join(', ')}</span>
+                                 </div>` : ''}
+                             
+                             ${celeb.ethnicity ? `<div class="mb-1"><small>Происхождение: ${getEthnicityLabel(celeb.ethnicity)}</small></div>` : ''}
+                             ${celeb.citizenship && celeb.citizenship.length > 0 ?
+       `<div class="mb-1"><small>Гражданство: ${celeb.citizenship.map(c => {
+        const country = countries.find(cnt => cnt.name === c);
+        return (country ? country.flag + ' ' : '') + c;
+       }).join(', ')}</small></div>` : ''}
+                         </div>
+                     </div>
+                 `;
+     container.appendChild(card);
+    });
+   }
+
+   function getEthnicityLabel(value) {
+    const labels = {
+     'european': 'Европейское', 'east-asian': 'Восточноазиатское',
+     'south-asian': 'Южноазиатское', 'african': 'Африканское',
+     'latin': 'Латиноамериканское', 'middle-eastern': 'Ближневосточное',
+     'indigenous': 'Коренные народы Америки', 'pacific': 'Океанийское',
+     'mixed': 'Смешанное', 'other': 'Другое'
+    };
+    return labels[value] || value;
+   }
+
+   // Функции фильтрации
+   function applyFilters() {
+    const nameFilter = document.getElementById('filterName').value.toLowerCase();
+    const hairColorFilter = document.getElementById('filterHairColor').value;
+    const occupationFilter = document.getElementById('filterOccupation').value;
+    const eyeColorFilter = document.getElementById('filterEyeColor').value;
+    const ethnicityFilter = document.getElementById('filterEthnicity').value;
+    const zodiacFilter = document.getElementById('filterZodiac').value;
+    const citizenshipFilter = document.getElementById('filterCitizenship').value.toLowerCase();
+    const ageMin = parseInt(document.getElementById('filterAgeMin').value) || 0;
+    const ageMax = parseInt(document.getElementById('filterAgeMax').value) || 120;
+    const heightMin = parseInt(document.getElementById('filterHeightMin').value) || 0;
+    const heightMax = parseInt(document.getElementById('filterHeightMax').value) || 250;
+    const genderFilter = document.getElementById('filterGender').value;
+
+    const filtered = celebrities.filter(celeb => {
+     return (
+      (nameFilter === '' || celeb.name.toLowerCase().includes(nameFilter)) &&
+      (hairColorFilter === '' || celeb.hairColor.includes(hairColorFilter)) &&
+      (occupationFilter === '' || celeb.occupation === occupationFilter) &&
+      (eyeColorFilter === '' || (celeb.eyeColor && celeb.eyeColor.includes(eyeColorFilter))) &&
+      (ethnicityFilter === '' || celeb.ethnicity === ethnicityFilter) &&
+      (zodiacFilter === '' || celeb.zodiac === zodiacFilter) &&
+      (citizenshipFilter === '' || (celeb.citizenship && celeb.citizenship.some(c => c.toLowerCase().includes(citizenshipFilter)))) &&
+      (celeb.age === null || (celeb.age >= ageMin && celeb.age <= ageMax)) &&
+      (celeb.height === null || (celeb.height >= heightMin && celeb.height <= heightMax)) &&
+      (genderFilter === '' || celeb.gender === genderFilter)
+     );
+    });
+
+    renderFilteredCelebrities(filtered);
+   }
+
+   function resetFilters() {
+    document.getElementById('filterName').value = '';
+    document.getElementById('filterHairColor').value = '';
+    document.getElementById('filterOccupation').value = '';
+    document.getElementById('filterEyeColor').value = '';
+    document.getElementById('filterEthnicity').value = '';
+    document.getElementById('filterZodiac').value = '';
+    document.getElementById('filterCitizenship').value = '';
+    document.getElementById('filterAgeMin').value = '';
+    document.getElementById('filterAgeMax').value = '';
+    document.getElementById('filterHeightMin').value = '';
+    document.getElementById('filterHeightMax').value = '';
+    document.getElementById('filterGender').value = '';
+
+    renderCelebrities();
+   }
  </script>
 </body>
 

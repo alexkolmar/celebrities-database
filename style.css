@@ -117,3 +117,9 @@ body {
  margin: 2px;
  border: 1px solid #dee2e6;
 }
+
+/* Кастомные цвета для бейджей и кнопок */
+.badge.bg-purple {
+    background-color: #6f42c1; /* Классический bootstrap-фиолетовый */
+    color: white;
+}
