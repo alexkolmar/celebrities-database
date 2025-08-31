@@ -10,6 +10,14 @@ body {
  padding-bottom: 50px;
 }
 
+details.add-form summary {
+ display: flex;
+}
+
+details.add-form[open] summary {
+ margin-bottom: 0.5rem;
+}
+ 
 .card {
  transition: transform 0.3s;
  height: 100%;
