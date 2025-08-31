@@ -794,6 +794,9 @@
     const age = calculateAge(birthDate);
     const zodiac = getZodiacSign(birthDate);
 
+    // Сохраняем старое фото при редактировании
+    const existingPhoto = editingId ? celebrities.find(c => c.id === editingId)?.photo : null;
+
     const newCelebrity = {
      id: editingId || Date.now(),
      name: name,
@@ -806,7 +809,8 @@
      citizenship: [...selectedCountries],
      occupation: occupation,
      zodiac: zodiac,
-     photo: photoData || `https://via.placeholder.com/300x200/6c757d/ffffff?text=${encodeURIComponent(name)}`,
+     // Ключевое изменение: сохраняем старое фото если новое не выбрано
+     photo: photoData || existingPhoto || `https://via.placeholder.com/300x200/6c757d/ffffff?text=${encodeURIComponent(name)}`,
      createdAt: new Date().toISOString()
     };
 
