@@ -169,7 +169,9 @@
    <!-- Список знаменитостей -->
    <div class="col-lg-7">
     <details class="filter-section">
-     <summary><h4><i class="fas fa-filter feature-icon"></i>Фильтры</h4></summary>
+     <summary>
+      <h4><i class="fas fa-filter feature-icon"></i>Фильтры</h4>
+     </summary>
 
      <div class="row filter-row">
       <div class="col-md-6 mb-3">
@@ -352,6 +354,9 @@
   let selectedCountries = [];
   let selectedEyeColors = [];
   let editingCelebrityId = null; // Для хранения ID редактируемой карточки
+  let currentPage = 1;
+  const itemsPerPage = 20; // по 20 карточек на страницу
+  let filteredData = []; // для хранения отфильтрованных данных
 
   // ===== ОСНОВНЫЕ ФУНКЦИИ =====
   let celebrities = [];
@@ -724,6 +729,10 @@
    document.getElementById('filterName').value = '';
 
    renderCelebrities();
+
+   filteredData = celebrities; // сбрасываем фильтр
+   currentPage = 1; // на первую страницу
+   renderFilteredCelebrityPage(); // перерисовываем
   }
 
   function applyFilters() {
@@ -767,76 +776,91 @@
      (!nameFilter || celeb.name.toLowerCase().includes(nameFilter));
    });
 
-   renderFilteredCelebrities(filtered);
+   filteredData = filtered; // сохраняем отфильтрованные данные
+   currentPage = 1; // сбрасываем на первую страницу
+   renderFilteredCelebrityPage(); // рендерим страницу
   }
 
   function renderCelebrities() {
-   renderFilteredCelebrities(celebrities);
+   filteredData = celebrities; // показываем все данные
+   currentPage = 1; // сбрасываем на первую страницу
+   renderFilteredCelebrityPage(); // рендерим страницу
   }
 
-  function renderFilteredCelebrities(data) {
+  function renderFilteredCelebrityPage() {
    const container = document.getElementById('celebritiesList');
    container.innerHTML = '';
    updateCount();
 
-   if (data.length === 0) {
+   if (filteredData.length === 0) {
     container.innerHTML = `
-                    <div class="col-12 text-center py-5">
-                        <i class="fas fa-search fa-3x mb-3 text-muted"></i>
-                        <h5 class="text-muted">Ничего не найдено</h5>
-                        <p class="text-muted">Попробуйте изменить параметры фильтрации</p>
-                    </div>
-                `;
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-search fa-3x mb-3 text-muted"></i>
+                <h5 class="text-muted">Ничего не найдено</h5>
+                <p class="text-muted">Попробуйте изменить параметры фильтрации</p>
+            </div>
+        `;
+    // Удаляем пагинацию если есть
+    const oldPagination = document.getElementById('pagination');
+    if (oldPagination) oldPagination.remove();
     return;
    }
 
-   data.forEach(celeb => {
+   // Вычисляем данные для текущей страницы
+   const startIndex = (currentPage - 1) * itemsPerPage;
+   const endIndex = startIndex + itemsPerPage;
+   const pageData = filteredData.slice(startIndex, endIndex);
+
+   // Рендерим карточки
+   pageData.forEach(celeb => {
     const card = document.createElement('div');
     card.className = 'col-md-6 mb-4';
     card.innerHTML = `
-                    <div class="card">
-                        <img src="${celeb.photo}" class="celebrity-img" alt="${celeb.name}" onerror="this.src='https://placeholder.darth-kolmar.workers.dev?w=300&h=200&bg=cccccc&fg=333333&txt=${encodeURIComponent(celeb.name)}'">
-                        <div class="card-body">
-                         <div class="card-actions" style="position: absolute; top: 10px; right: 10px;">
-                <button class="btn btn-sm btn-outline-primary me-1" onclick="editCelebrity(${celeb.id})">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-danger" onclick="deleteCelebrity(${celeb.id})">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-                            <h5 class="card-title">${celeb.name}</h5>
-                            
-                            <div class="mb-2">
-                                ${celeb.age ? `<span class="badge bg-primary">${celeb.age} ${getAgeWord(celeb.age)}</span>` : ''}
-                                ${celeb.zodiac ? `<span class="badge bg-info">${celeb.zodiac}</span>` : ''}
-                                ${celeb.height ? `<span class="badge bg-secondary">${celeb.height} см</span>` : ''}
-                            </div>
-                            
-                            <div class="mb-2">
-    ${celeb.hairColor.map(color => `<span class="badge bg-purple">${getGenderHairColor(color, celeb.gender)}</span>`).join('')}
-    <span class="badge bg-success">${getGenderOccupation(celeb.occupation, celeb.gender)}</span>
-    ${celeb.gender === 'мужчина' ?
+            <div class="card">
+                <img src="${celeb.photo}" class="celebrity-img" alt="${celeb.name}" onerror="this.src='https://placeholder.darth-kolmar.workers.dev?w=300&h=200&bg=cccccc&fg=333333&txt=${encodeURIComponent(celeb.name)}'">
+                <div class="card-body">
+                    <div class="card-actions" style="position: absolute; top: 10px; right: 10px;">
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="editCelebrity(${celeb.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteCelebrity(${celeb.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <h5 class="card-title">${celeb.name}</h5>
+                    
+                    <div class="mb-2">
+                        ${celeb.age ? `<span class="badge bg-primary">${celeb.age} ${getAgeWord(celeb.age)}</span>` : ''}
+                        ${celeb.zodiac ? `<span class="badge bg-info">${celeb.zodiac}</span>` : ''}
+                        ${celeb.height ? `<span class="badge bg-secondary">${celeb.height} см</span>` : ''}
+                    </div>
+                    
+                    <div class="mb-2">
+                        ${celeb.hairColor.map(color => `<span class="badge bg-purple">${getGenderHairColor(color, celeb.gender)}</span>`).join('')}
+                        <span class="badge bg-success">${getGenderOccupation(celeb.occupation, celeb.gender)}</span>
+                        ${celeb.gender === 'мужчина' ?
       '<span class="badge bg-primary"><i class="fas fa-mars me-1"></i>Мужчина</span>' :
       '<span class="badge bg-danger"><i class="fas fa-venus me-1"></i>Женщина</span>'}
-</div>
-                            
-                            ${celeb.eyeColor && celeb.eyeColor.length > 0 ?
+                    </div>
+                    
+                    ${celeb.eyeColor && celeb.eyeColor.length > 0 ?
       `<div class="mb-2">
-                                    <span class="badge bg-info">👁️ ${celeb.eyeColor.map(getEyeColorLabel).join(', ')}</span>
-                                </div>` : ''}
-                            
-                            ${celeb.ethnicity ? `<div class="mb-1"><small>Происхождение: ${getEthnicityLabel(celeb.ethnicity)}</small></div>` : ''}
-                            ${celeb.citizenship && celeb.citizenship.length > 0 ?
+                            <span class="badge bg-info">👁️ ${celeb.eyeColor.map(getEyeColorLabel).join(', ')}</span>
+                        </div>` : ''}
+                    
+                    ${celeb.ethnicity ? `<div class="mb-1"><small>Происхождение: ${getEthnicityLabel(celeb.ethnicity)}</small></div>` : ''}
+                    ${celeb.citizenship && celeb.citizenship.length > 0 ?
       `<div class="mb-1"><small>Гражданство: ${celeb.citizenship.map(c => {
        const country = countries.find(cnt => cnt.name === c);
        return (country ? country.flag + ' ' : '') + c;
       }).join(', ')}</small></div>` : ''}
-                        </div>
-                    </div>
-                `;
+                </div>
+            </div>
+        `;
     container.appendChild(card);
    });
+
+   renderPagination(filteredData.length);
   }
 
   function getEthnicityLabel(value) {
@@ -1109,6 +1133,49 @@
    } else {
     return 'лет';
    }
+  }
+
+  function renderPagination(totalItems) {
+   const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+   // Удаляем старую пагинацию если есть
+   const oldPagination = document.getElementById('pagination');
+   if (oldPagination) oldPagination.remove();
+
+   if (totalPages <= 1) return; // Не показываем пагинацию если страница одна
+
+   const pagination = document.createElement('nav');
+   pagination.id = 'pagination';
+   pagination.innerHTML = `
+        <ul class="pagination justify-content-center mt-4">
+            <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                <button class="page-link" onclick="changePage(${currentPage - 1})">← Назад</button>
+            </li>
+            
+            ${Array.from({ length: totalPages }, (_, i) => i + 1)
+     .map(page => `
+                    <li class="page-item ${page === currentPage ? 'active' : ''}">
+                        <button class="page-link" onclick="changePage(${page})">${page}</button>
+                    </li>
+                `).join('')}
+            
+            <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                <button class="page-link" onclick="changePage(${currentPage + 1})">Вперед →</button>
+            </li>
+        </ul>
+        
+        <div class="text-center text-muted mt-2">
+            Показано ${((currentPage - 1) * itemsPerPage) + 1}-${Math.min(currentPage * itemsPerPage, totalItems)} из ${totalItems}
+        </div>
+    `;
+
+   document.getElementById('celebritiesList').after(pagination);
+  }
+
+  function changePage(page) {
+   currentPage = page;
+   renderFilteredCelebrityPage(); // Перерисовываем с новой страницей
+   window.scrollTo({ top: 0, behavior: 'smooth' }); // Прокручиваем вверх
   }
  </script>
 

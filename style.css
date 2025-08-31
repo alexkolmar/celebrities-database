@@ -148,3 +148,21 @@ details.add-form[open] summary, details.filter-section[open] summary {
 .card:hover .celebrity-img {
     transform: scale(1.05);
 }
+
+.pagination {
+    margin: 20px 0;
+}
+
+.page-item.active .page-link {
+    background-color: #6f42c1;
+    border-color: #6f42c1;
+}
+
+.page-link {
+    color: #6f42c1;
+    cursor: pointer;
+}
+
+.page-link:hover {
+    color: #4a2d7d;
+}
