@@ -166,3 +166,7 @@ details.add-form[open] summary, details.filter-section[open] summary {
 .page-link:hover {
     color: #4a2d7d;
 }
+
+.text-muted {
+    display: none;
+}
