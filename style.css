@@ -167,6 +167,6 @@ details.add-form[open] summary, details.filter-section[open] summary {
     color: #4a2d7d;
 }
 
-.text-muted {
+.card-body .text-muted {
     display: none;
 }
