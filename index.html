@@ -501,7 +501,10 @@
 
   // Функции для цвета глаз
   function updateSelectedEyeColors() {
-   selectedEyeColors = Array.from(document.getElementById('celebEyeColor').selectedOptions)
+   const eyeSelect = document.getElementById('celebEyeColor');
+   if (!eyeSelect) return; // ← ДОБАВЬТЕ ЭТУ СТРОЧКУ
+
+   selectedEyeColors = Array.from(eyeSelect.selectedOptions)
     .map(opt => opt.value);
 
    const container = document.getElementById('selectedEyeColors');
@@ -518,11 +521,10 @@
     const badge = document.createElement('span');
     badge.className = 'badge eye-color-badge bg-light text-dark me-1 mb-1';
     badge.innerHTML = `${getEyeColorEmoji(color)} ${getEyeColorLabel(color)} 
-                    <span style="cursor:pointer; margin-left:5px;" onclick="removeEyeColor('${color}')">×</span>`;
+                      <span style="cursor:pointer; margin-left:5px;" onclick="removeEyeColor('${color}')">×</span>`;
     container.appendChild(badge);
    });
   }
-
   function getEyeColorEmoji(color) {
    const emojis = {
     'голубые': '🔵',
@@ -926,6 +928,11 @@
       updateTrustedUsersList();
      }
 
+     // Сохраняем информацию о владельце Gist
+     if (gistData.owner && gistData.owner.login) {
+      localStorage.setItem('githubUser', gistData.owner.login);
+     }
+
      saveData();
      renderCelebrities();
      currentGistId = gistId;
@@ -953,6 +960,10 @@
     });
     const userData = await userResponse.json();
     const userLogin = userData.login;
+
+    // ДОБАВЬТЕ ЭТО:
+    localStorage.setItem('githubUser', userLogin);
+    localStorage.setItem('githubToken', token); // опционально, если нужно
 
     if (!hasEditPermissions(userLogin)) {
      return alert('❌ У вас нет прав для редактирования этой базы');
@@ -1005,6 +1016,10 @@
    } catch (error) {
     alert('❌ Ошибка при сохранении: ' + error.message);
    }
+  }
+
+  function hasEditPermissions(githubLogin) {
+   return trustedUsers.includes(githubLogin) || githubLogin === ADMIN_USERNAME;
   }
 
   // ===== ФУНКЦИИ РЕДАКТИРОВАНИЯ И УДАЛЕНИЯ =====
@@ -1088,6 +1103,14 @@
    const age = calculateAge(birthDate);
    const zodiac = getZodiacSign(birthDate);
 
+   // Получаем информацию о пользователе
+   let editorInfo = 'Неизвестный пользователь';
+   try {
+    editorInfo = localStorage.getItem('githubUser') || 'Локальный пользователь';
+   } catch (e) {
+    console.error('Ошибка получения информации о пользователе:', e);
+   }
+
    // Обновляем карточку
    celebrities[celebIndex] = {
     ...celebrities[celebIndex],
@@ -1103,7 +1126,7 @@
     gender,
     zodiac,
     photo: photoUrl || `https://placeholder.darth-kolmar.workers.dev?w=300&h=200&bg=cccccc&fg=333333&txt=${encodeURIComponent(name)}`,
-    lastEditedBy: userLogin // ← ДОБАВЬ ЭТУ СТРОЧКУ
+    lastEditedBy: editorInfo
    };
 
    saveData();
