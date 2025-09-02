@@ -177,12 +177,12 @@
     </div>
 
     <div class="mt-3">
-     <h5><i class="fas fa-code-pull-request"></i> Управление изменениями</h5>
+     <h5><i class="fas fa-code-pull-request"></i> Автоматическая очередь изменений</h5>
      <button class="btn btn-info w-100 mb-2" onclick="viewPendingChanges()">
-      📋 Просмотреть PR из очереди
+      📋 Показать очередь PR
      </button>
      <button class="btn btn-success w-100" onclick="reviewPullRequest()">
-      ✅ Принять изменения (автовыбор)
+      ✅ Принять изменения из очереди
      </button>
     </div>
 
@@ -963,6 +963,12 @@
       updateTrustedUsersList();
      }
 
+     // В функции loadFromGist() после загрузки trustedUsers добавьте:
+     if (gistData.files['pullRequests.json']) {
+      pendingPullRequests = JSON.parse(gistData.files['pullRequests.json'].content);
+      console.log('Загружена очередь PR:', pendingPullRequests);
+     }
+
      if (gistData.files['pullRequests.json']) {
       pendingPullRequests = JSON.parse(gistData.files['pullRequests.json'].content);
       console.log('Загружены pending PR:', pendingPullRequests);
@@ -1580,46 +1586,58 @@
 
     const message = prompt('Опишите ваши изменения:') || 'Изменения базы';
 
-    // Создаем Gist с изменениями
-    const changesGist = {
-     description: `Pull Request from ${userLogin} - ${new Date().toLocaleString()}`,
-     public: false,
-     files: {
-      'changes.json': {
-       content: JSON.stringify({
-        user: userLogin,
-        timestamp: new Date().toISOString(),
-        changes: celebrities,
-        message: message
-       }, null, 2)
-      }
-     }
+    // Создаем PR в ОЧЕРЕДИ АДМИНА (это ключевое изменение!)
+    const adminGistId = document.getElementById('gistIdInput').value;
+    if (!adminGistId) {
+     throw new Error('Сначала загрузите базу админа');
+    }
+
+    // Загружаем текущий gist админа
+    const adminGistResponse = await fetch(`https://api.github.com/gists/${adminGistId}`);
+    const adminGist = await adminGistResponse.json();
+
+    // Создаем новый PR в очереди
+    const newPR = {
+     id: 'pr_' + Date.now(),
+     user: userLogin,
+     timestamp: new Date().toISOString(),
+     changes: celebrities,
+     message: message,
+     status: 'pending'
     };
 
-    const response = await fetch('https://api.github.com/gists', {
-     method: 'POST',
+    // Добавляем в очередь
+    if (!adminGist.files['pullRequests.json']) {
+     adminGist.files['pullRequests.json'] = { content: '[]' };
+    }
+
+    const currentQueue = JSON.parse(adminGist.files['pullRequests.json'].content);
+    currentQueue.push(newPR);
+
+    // Обновляем gist админа
+    const updateResponse = await fetch(`https://api.github.com/gists/${adminGistId}`, {
+     method: 'PATCH',
      headers: {
       'Authorization': `token ${token}`,
       'Accept': 'application/vnd.github.v3+json',
       'Content-Type': 'application/json'
      },
-     body: JSON.stringify(changesGist)
+     body: JSON.stringify({
+      files: {
+       ...adminGist.files,
+       'pullRequests.json': {
+        content: JSON.stringify(currentQueue, null, 2)
+       }
+      }
+     })
     });
 
-    if (!response.ok) {
-     throw new Error('Ошибка создания PR');
-    }
-
-    const gistData = await response.json();
-    const prId = gistData.id;
-
-    // Пытаемся добавить в очередь (но не обязательно)
-    try {
-     await addPullRequestToQueue(prId, userLogin, token);
-     alert(`✅ Pull Request отправлен и добавлен в очередь!\nID: ${prId}`);
-    } catch (queueError) {
-     // Если не удалось добавить в очередь - все равно сообщаем успех
-     alert(`✅ Pull Request отправлен!\nID: ${prId}\nСообщите этот ID администратору`);
+    if (updateResponse.ok) {
+     alert('✅ Pull Request отправлен в очередь админа!');
+     // Перезагружаем базу чтобы обновить очередь
+     loadFromGist();
+    } else {
+     throw new Error('Ошибка добавления в очередь');
     }
 
    } catch (error) {
@@ -1673,11 +1691,10 @@
   }
 
   async function reviewPullRequest() {
-   const token = prompt('Введите ваш GitHub токен (админ):');
+   const token = prompt('Введите GitHub токен (админ):');
    if (!token) return;
 
    try {
-    // Проверяем что это админ
     const userResponse = await fetch('https://api.github.com/user', {
      headers: { 'Authorization': `token ${token}` }
     });
@@ -1691,13 +1708,13 @@
      return alert('Нет ожидающих Pull Request\'ов');
     }
 
-    // Автоматически предлагаем PR из очереди
+    // Показываем список PR для выбора
     const prList = pendingPullRequests.map((pr, index) =>
-     `${index + 1}. ${pr.user} - ${new Date(pr.timestamp).toLocaleDateString()} (${pr.id})`
+     `${index + 1}. ${pr.user} - ${pr.message}`
     ).join('\n');
 
     const selectedIndex = prompt(
-     `Выберите PR для проверки:\n\n${prList}\n\nВведите номер PR (1, 2, 3...):`
+     `Выберите PR для принятия:\n\n${prList}\n\nВведите номер:`
     );
 
     if (!selectedIndex) return;
@@ -1707,8 +1724,21 @@
      return alert('❌ Неверный номер');
     }
 
-    const prId = pendingPullRequests[prIndex].id;
-    await processPullRequest(prId, token);
+    const selectedPR = pendingPullRequests[prIndex];
+
+    if (confirm(`Принять изменения от ${selectedPR.user}?\n\n"${selectedPR.message}"\nЗаписей: ${selectedPR.changes.length}`)) {
+     // Мерджим изменения
+     const mergedData = mergeData(celebrities, selectedPR.changes, selectedPR.user);
+     celebrities = mergedData;
+     saveData();
+     renderCelebrities();
+
+     // Удаляем PR из очереди
+     pendingPullRequests.splice(prIndex, 1);
+     await updatePullRequestsQueue(token);
+
+     alert('✅ Изменения приняты!');
+    }
 
    } catch (error) {
     alert('❌ Ошибка: ' + error.message);
@@ -1749,53 +1779,21 @@
   }
 
   async function viewPendingChanges() {
-   const token = prompt('Введите GitHub токен (админ):');
-   if (!token) return;
-
-   try {
-    // Проверяем что это админ
-    const userResponse = await fetch('https://api.github.com/user', {
-     headers: { 'Authorization': `token ${token}` }
-    });
-    const userData = await userResponse.json();
-
-    if (userData.login !== ADMIN_USERNAME) {
-     return alert('❌ Только администратор может просматривать изменения');
-    }
-
-    if (pendingPullRequests.length === 0) {
-     return alert('Нет ожидающих Pull Request\'ов');
-    }
-
-    let message = 'Ожидающие Pull Request\'ы:\n\n';
-
-    // Проверяем актуальность каждого PR
-    for (const pr of pendingPullRequests) {
-     try {
-      const prResponse = await fetch(`https://api.github.com/gists/${pr.id}`, {
-       headers: { 'Authorization': `token ${token}` }
-      });
-
-      if (prResponse.ok) {
-       const prData = await prResponse.json();
-       message += `👤 ${pr.user}\n`;
-       message += `📋 ${prData.description}\n`;
-       message += `🔗 ID: ${pr.id}\n`;
-       message += `⏰ ${new Date(pr.timestamp).toLocaleString()}\n`;
-       message += `📊 Статус: ${pr.status}\n`;
-       message += `——————————————\n`;
-      }
-     } catch (e) {
-      message += `❌ ${pr.user} - PR недоступен (${pr.id})\n`;
-     }
-    }
-
-    message += '\nДля принятия нажмите "Принять изменения"';
-    alert(message);
-
-   } catch (error) {
-    alert('❌ Ошибка загрузки изменений: ' + error.message);
+   if (pendingPullRequests.length === 0) {
+    return alert('Нет ожидающих Pull Request\'ов');
    }
+
+   let message = 'Ожидающие Pull Request\'ы:\n\n';
+
+   pendingPullRequests.forEach((pr, index) => {
+    message += `${index + 1}. 👤 ${pr.user}\n`;
+    message += `   📝 ${pr.message}\n`;
+    message += `   ⏰ ${new Date(pr.timestamp).toLocaleString()}\n`;
+    message += `   📊 Записей: ${pr.changes.length}\n`;
+    message += `   ――――――――――――――――――\n`;
+   });
+
+   alert(message);
   }
 
   async function updatePullRequestsQueue(token) {
