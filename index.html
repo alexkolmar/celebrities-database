@@ -1081,10 +1081,22 @@
 
   function mergeData(remoteData, localData, userLogin) {
    const merged = [...remoteData];
-   const conflicts = [];
 
-   // Проходим по локальным данным
-   localData.forEach(localItem => {
+   // Сначала очищаем локальные данные от старых пометок конфликтов
+   const cleanedLocalData = localData.map(item => {
+    const cleanItem = { ...item };
+    // Удаляем все служебные поля конфликтов
+    delete cleanItem.mergeType;
+    delete cleanItem.conflictResolved;
+    // Чистим lastEditedBy от упоминаний о конфликтах
+    if (cleanItem.lastEditedBy && cleanItem.lastEditedBy.includes('конфликт')) {
+     cleanItem.lastEditedBy = userLogin;
+    }
+    return cleanItem;
+   });
+
+   // Проходим по ОЧИЩЕННЫМ локальным данным
+   cleanedLocalData.forEach(localItem => {
     const existingIndex = merged.findIndex(r => r.id === localItem.id);
 
     if (existingIndex === -1) {
@@ -1108,37 +1120,11 @@
        lastEditedBy: userLogin,
        mergeType: 'updated'
       };
-     } else if (localUpdated.getTime() === remoteUpdated.getTime()) {
-      // Одинаковое время - осторожный мердж
-      if (JSON.stringify(localItem) !== JSON.stringify(remoteItem)) {
-       conflicts.push({
-        id: localItem.id,
-        name: localItem.name,
-        local: localItem,
-        remote: remoteItem
-       });
-
-       // Берем нашу версию, но помечаем конфликт
-       merged[existingIndex] = {
-        ...localItem,
-        lastEditedBy: `${userLogin} (конфликт)`,
-        mergeType: 'conflict',
-        conflictResolved: false
-       };
-      }
      }
-     // Если remote новее - оставляем как есть
+     // Если remote новее или одинаковое время - оставляем как есть
+     // НЕ создаем конфликтов вообще!
     }
    });
-
-   // Сообщаем о конфликтах
-   if (conflicts.length > 0) {
-    alert(`⚠️ Обнаружено ${conflicts.length} конфликт(ов) при merge. 
-Проверьте карточки с пометкой "конфликт" в истории изменений.`);
-
-    // Логируем конфликты для отладки
-    console.log('Конфликты merge:', conflicts);
-   }
 
    return merged;
   }

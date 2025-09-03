@@ -185,3 +185,7 @@ details.filter-section[open] summary {
     /* Красный цвет */
     font-weight: 500;
 }
+
+.card-body .bg-warning {
+    display: none;
+}
