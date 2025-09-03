@@ -189,3 +189,8 @@ details.filter-section[open] summary {
 .card-body .bg-warning {
     display: none;
 }
+
+.deceased-card {
+    opacity: 0.9;
+    border-left: 4px solid #6c757d;
+}

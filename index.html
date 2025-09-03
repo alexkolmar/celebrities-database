@@ -43,6 +43,23 @@
       <div class="form-text">Возраст и знак зодиака определятся автоматически</div>
      </div>
 
+     <!-- Поле "Умер" -->
+     <div class="mb-3">
+      <div class="form-check">
+       <input class="form-check-input" type="checkbox" id="celebIsDeceased">
+       <label class="form-check-label" for="celebIsDeceased">
+        ❌ Нет в живых
+       </label>
+      </div>
+     </div>
+
+     <!-- Дата смерти (показывается только если отмечено "Умер") -->
+     <div class="mb-3" id="deathDateField" style="display: none;">
+      <label class="form-label">Дата смерти</label>
+      <input type="date" class="form-control" id="celebDeathDate">
+      <div class="form-text">Возраст на момент смерти определится автоматически</div>
+     </div>
+
      <div class="mb-3 optional-field">
       <label class="form-label">Рост (см)</label>
       <input type="number" class="form-control" id="celebHeight" placeholder="Не указано">
@@ -214,13 +231,24 @@
       </div>
      </div>
 
-     <div class="col-md-6 mb-3">
-      <label class="form-label">Пол</label>
-      <select class="form-select" id="filterGender">
-       <option value="">Все</option>
-       <option value="мужчина">Мужчина</option>
-       <option value="женщина">Женщина</option>
-      </select>
+     <div class="row filter-row">
+      <div class="col-md-6 mb-3">
+       <label class="form-label">Пол</label>
+       <select class="form-select" id="filterGender">
+        <option value="">Все</option>
+        <option value="мужчина">Мужчина</option>
+        <option value="женщина">Женщина</option>
+       </select>
+      </div>
+
+      <div class="col-md-6 mb-3">
+       <label class="form-label">Статус</label>
+       <select class="form-select" id="filterStatus">
+        <option value="">Все</option>
+        <option value="alive">Живые</option>
+        <option value="deceased">Умершие</option>
+       </select>
+      </div>
      </div>
 
      <!-- ФИЛЬТР ПО ЦВЕТУ ГЛАЗ -->
@@ -335,6 +363,16 @@
  </div>
 
  <script>
+  // Показ/скрытие поля даты смерти
+  document.getElementById('celebIsDeceased').addEventListener('change', function () {
+   const deathDateField = document.getElementById('deathDateField');
+   deathDateField.style.display = this.checked ? 'block' : 'none';
+
+   if (!this.checked) {
+    document.getElementById('celebDeathDate').value = '';
+   }
+  });
+
   // ===== ПРОСТОЙ ВЫБОР СТРАН =====
   const countries = [
    { name: "Россия", flag: "🇷🇺" },
@@ -706,9 +744,27 @@
    return age;
   }
 
+  function calculateAgeAtDeath(birthDate, deathDate) {
+   if (!birthDate || !deathDate) return null;
+
+   const birth = new Date(birthDate);
+   const death = new Date(deathDate);
+   let age = death.getFullYear() - birth.getFullYear();
+
+   const monthDiff = death.getMonth() - birth.getMonth();
+   if (monthDiff < 0 || (monthDiff === 0 && death.getDate() < birth.getDate())) {
+    age--;
+   }
+
+   return age;
+  }
+
   function addCelebrity() {
    const name = document.getElementById('celebName').value;
    const birthDate = document.getElementById('celebBirthDate').value;
+   const isDeceased = document.getElementById('celebIsDeceased').checked;
+   const deathDate = document.getElementById('celebDeathDate').value;
+   const ageAtDeath = deathDate ? calculateAgeAtDeath(birthDate, deathDate) : null;
    const height = document.getElementById('celebHeight').value;
    const hairColor = Array.from(document.getElementById('celebHairColor').selectedOptions)
     .map(opt => opt.value);
@@ -740,6 +796,9 @@
     id: Date.now(),
     name: name,
     birthDate: birthDate,
+    isDeceased: isDeceased,
+    deathDate: deathDate || null,
+    ageAtDeath: ageAtDeath,
     height: height || null,
     hairColor: normalizedHairColor,
     eyeColor: eyeColor,
@@ -765,6 +824,9 @@
    if (editingCelebrityId) return;
    document.getElementById('celebName').value = '';
    document.getElementById('celebBirthDate').value = '';
+   document.getElementById('celebIsDeceased').checked = false;
+   document.getElementById('celebDeathDate').value = '';
+   document.getElementById('deathDateField').style.display = 'none';
    document.getElementById('celebHeight').value = '';
    document.getElementById('celebHairColor').selectedIndex = -1;
    document.getElementById('celebEyeColor').selectedIndex = -1;
@@ -791,6 +853,7 @@
    document.getElementById('filterHairColor').value = '';
    document.getElementById('filterOccupation').value = '';
    document.getElementById('filterGender').value = '';
+   document.getElementById('filterStatus').value = '';
    document.getElementById('filterEyeColor').value = '';
    document.getElementById('filterEthnicity').value = '';
    document.getElementById('filterZodiac').value = '';
@@ -812,6 +875,7 @@
    const hairColor = document.getElementById('filterHairColor').value;
    const occupation = document.getElementById('filterOccupation').value;
    const gender = document.getElementById('filterGender').value;
+   const status = document.getElementById('filterStatus').value; // ← ДОБАВЬ ЭТУ СТРОЧКУ
    const eyeColor = document.getElementById('filterEyeColor').value;
    const ethnicity = document.getElementById('filterEthnicity').value;
    const zodiac = document.getElementById('filterZodiac').value;
@@ -840,6 +904,10 @@
       (occupation === 'спортсмен' && celeb.occupation === 'спортсменка') ||
       (occupation === 'блогер' && celeb.occupation === 'блогерша')) &&
      (!gender || celeb.gender === gender) &&
+     (!status ||
+      (status === 'alive' && !celeb.isDeceased) ||
+      (status === 'deceased' && celeb.isDeceased)
+     ) &&
      (!eyeColor || (celeb.eyeColor && celeb.eyeColor.includes(eyeColor))) &&
      (!ethnicity || celeb.ethnicity === ethnicity) &&
      (!zodiac || celeb.zodiac === zodiac) &&
@@ -849,9 +917,9 @@
      (!nameFilter || celeb.name.toLowerCase().includes(nameFilter));
    });
 
-   filteredData = filtered; // сохраняем отфильтрованные данные
-   currentPage = 1; // сбрасываем на первую страницу
-   renderFilteredCelebrityPage(); // рендерим страницу
+   filteredData = filtered;
+   currentPage = 1;
+   renderFilteredCelebrityPage();
   }
 
   function renderCelebrities() {
@@ -889,7 +957,7 @@
     const card = document.createElement('div');
     card.className = 'col-md-6 mb-4';
     card.innerHTML = `
-            <div class="card">
+            <div class="card ${celeb.isDeceased ? 'deceased-card' : ''}">
                 <img src="${celeb.photo}" class="celebrity-img" alt="${celeb.name}" onerror="this.src='https://placeholder.darth-kolmar.workers.dev?w=300&h=200&bg=cccccc&fg=333333&txt=${encodeURIComponent(celeb.name)}'">
                 <div class="card-body">
                     <div class="card-actions" style="position: absolute; top: 10px; right: 10px;">
@@ -903,10 +971,13 @@
                     <h5 class="card-title">${celeb.name}</h5>
                     
                     <div class="mb-2">
-                        ${celeb.birthDate ? `<span class="badge bg-primary">${calculateAge(celeb.birthDate)} ${getAgeWord(calculateAge(celeb.birthDate))}</span>` : ''}
-                        ${celeb.zodiac ? `<span class="badge bg-info">${celeb.zodiac}</span>` : ''}
-                        ${celeb.height ? `<span class="badge bg-secondary">${celeb.height} см</span>` : ''}
-                    </div>
+    ${celeb.isDeceased ?
+      `<span class="badge bg-dark">❌ ${getDeathWord(celeb.gender)} в ${celeb.ageAtDeath} ${getAgeWord(celeb.ageAtDeath)}</span>` :
+      (celeb.birthDate ? `<span class="badge bg-primary">${calculateAge(celeb.birthDate)} ${getAgeWord(calculateAge(celeb.birthDate))}</span>` : '')
+     }
+    ${celeb.zodiac ? `<span class="badge bg-info">${celeb.zodiac}</span>` : ''}
+    ${celeb.height ? `<span class="badge bg-secondary">${celeb.height} см</span>` : ''}
+</div>
                     
                     <div class="mb-2">
                         ${celeb.hairColor.map(color => `<span class="badge bg-purple">${getGenderHairColor(color, celeb.gender)}</span>`).join('')}
@@ -1149,6 +1220,9 @@
    // Заполняем форму данными
    document.getElementById('celebName').value = celeb.name;
    document.getElementById('celebBirthDate').value = celeb.birthDate || '';
+   document.getElementById('celebIsDeceased').checked = celeb.isDeceased || false;
+   document.getElementById('celebDeathDate').value = celeb.deathDate || '';
+   document.getElementById('deathDateField').style.display = celeb.isDeceased ? 'block' : 'none';
    document.getElementById('celebHeight').value = celeb.height || '';
 
    // Цвет волос
@@ -1197,6 +1271,7 @@
    // Получаем данные из формы (как в addCelebrity)
    const name = document.getElementById('celebName').value;
    const birthDate = document.getElementById('celebBirthDate').value;
+   const deathDate = document.getElementById('celebDeathDate').value;
    const height = document.getElementById('celebHeight').value;
    const hairColor = Array.from(document.getElementById('celebHairColor').selectedOptions)
     .map(opt => opt.value);
@@ -1307,6 +1382,14 @@
     return 'года';
    } else {
     return 'лет';
+   }
+  }
+
+  function getDeathWord(gender) {
+   if (gender === 'женщина') {
+    return 'умерла';
+   } else {
+    return 'умер';
    }
   }
 
