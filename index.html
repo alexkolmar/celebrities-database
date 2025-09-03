@@ -740,7 +740,6 @@
     id: Date.now(),
     name: name,
     birthDate: birthDate,
-    age: age,
     height: height || null,
     hairColor: normalizedHairColor,
     eyeColor: eyeColor,
@@ -845,7 +844,7 @@
      (!ethnicity || celeb.ethnicity === ethnicity) &&
      (!zodiac || celeb.zodiac === zodiac) &&
      (!citizenship || (celeb.citizenship && celeb.citizenship.some(c => c.toLowerCase().includes(citizenship)))) &&
-     (!celeb.age || (celeb.age >= ageMin && celeb.age <= ageMax)) &&
+     (!celeb.birthDate || (calculateAge(celeb.birthDate) >= ageMin && calculateAge(celeb.birthDate) <= ageMax)) &&
      (!celeb.height || (celeb.height >= heightMin && celeb.height <= heightMax)) &&
      (!nameFilter || celeb.name.toLowerCase().includes(nameFilter));
    });
@@ -904,7 +903,7 @@
                     <h5 class="card-title">${celeb.name}</h5>
                     
                     <div class="mb-2">
-                        ${celeb.age ? `<span class="badge bg-primary">${celeb.age} ${getAgeWord(celeb.age)}</span>` : ''}
+                        ${celeb.birthDate ? `<span class="badge bg-primary">${calculateAge(celeb.birthDate)} ${getAgeWord(calculateAge(celeb.birthDate))}</span>` : ''}
                         ${celeb.zodiac ? `<span class="badge bg-info">${celeb.zodiac}</span>` : ''}
                         ${celeb.height ? `<span class="badge bg-secondary">${celeb.height} см</span>` : ''}
                     </div>
