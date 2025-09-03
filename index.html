@@ -958,7 +958,9 @@
     card.className = 'col-md-6 mb-4';
     card.innerHTML = `
             <div class="card ${celeb.isDeceased ? 'deceased-card' : ''}">
-                <img src="${celeb.photo}" class="celebrity-img" alt="${celeb.name}" onerror="this.src='https://placeholder.darth-kolmar.workers.dev?w=300&h=200&bg=cccccc&fg=333333&txt=${encodeURIComponent(celeb.name)}'">
+                <div class="${celeb.isDeceased ? 'deceased-photo' : ''}">
+    <img src="${celeb.photo}" class="celebrity-img" alt="${celeb.name}" onerror="this.src='https://placeholder.darth-kolmar.workers.dev?w=300&h=200&bg=cccccc&fg=333333&txt=${encodeURIComponent(celeb.name)}'">
+</div>
                 <div class="card-body">
                     <div class="card-actions" style="position: absolute; top: 10px; right: 10px;">
                         <button class="btn btn-sm btn-outline-primary me-1" onclick="editCelebrity(${celeb.id})">

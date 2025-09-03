@@ -190,7 +190,25 @@ details.filter-section[open] summary {
     display: none;
 }
 
-.deceased-card {
+/* .deceased-card {
     opacity: 0.9;
     border-left: 4px solid #6c757d;
+} */
+
+.deceased-photo {
+    position: relative;
+    display: inline-block;
+}
+
+
+.deceased-photo::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  clip-path: polygon(100% 0%, 100% 30px, 30px 100%, 0 100%);
+  width: 90px;
+  height: 90px;
+  background: #000;
+  background: linear-gradient(135deg, #888 65px, #000 65px, #000 83px, #888 83px);
 }
