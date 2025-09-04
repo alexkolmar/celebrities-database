@@ -1,193 +1,197 @@
 /* Все стили остаются без изменений */
 :root {
-    --primary-color: #6f42c1;
-    --secondary-color: #20c997;
+  --primary-color: #6f42c1;
+  --secondary-color: #20c997;
 }
 
 body {
-    background-color: #f8f9fa;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    padding-bottom: 50px;
+  background-color: #f8f9fa;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding-bottom: 50px;
 }
 
 details.add-form summary,
 details.filter-section summary {
-    display: flex;
+  display: flex;
 }
 
 details.add-form[open] summary,
 details.filter-section[open] summary {
-    margin-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.filter-section summary {
+  justify-content: space-between;
 }
 
 .card {
-    transition: transform 0.3s;
-    height: 100%;
-    border: none;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s;
+  height: 100%;
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-5px);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
 }
 
 .celebrity-img {
-    width: 100%;
-    height: 250px;
-    object-fit: cover;
-    object-position: center top;
-    border-bottom: 3px solid var(--primary-color);
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  object-position: center top;
+  border-bottom: 3px solid var(--primary-color);
 }
 
 .filter-section,
 .add-form {
-    background-color: white;
-    border-radius: 12px;
-    padding: 25px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    margin-bottom: 25px;
-    border: 1px solid rgba(0, 0, 0, 0.05);
+  background-color: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin-bottom: 25px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .btn-purple {
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
 }
 
 .btn-purple:hover {
-    background-color: #5a32a3;
-    color: white;
+  background-color: #5a32a3;
+  color: white;
 }
 
 .badge {
-    margin: 2px;
+  margin: 2px;
 }
 
 .photo-preview {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    border-radius: 8px;
-    display: none;
-    margin-top: 10px;
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  display: none;
+  margin-top: 10px;
 }
 
 .feature-icon {
-    color: var(--primary-color);
-    margin-right: 8px;
+  color: var(--primary-color);
+  margin-right: 8px;
 }
 
 .optional-field {
-    opacity: 0.8;
+  opacity: 0.8;
 }
 
 .country-search-container {
-    position: relative;
+  position: relative;
 }
 
 .country-dropdown {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    max-height: 200px;
-    overflow-y: auto;
-    z-index: 1000;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .country-item {
-    padding: 8px 12px;
-    cursor: pointer;
-    border-bottom: 1px solid #eee;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
 }
 
 .country-item:hover {
-    background-color: #f8f9fa;
+  background-color: #f8f9fa;
 }
 
 .selected-countries {
-    margin-top: 10px;
-    min-height: 40px;
+  margin-top: 10px;
+  min-height: 40px;
 }
 
 .filter-row {
-    margin-bottom: 15px;
+  margin-bottom: 15px;
 }
 
 .eye-color-badge {
-    margin: 2px;
-    border: 1px solid #dee2e6;
+  margin: 2px;
+  border: 1px solid #dee2e6;
 }
 
 /* Кастомные цвета для бейджей и кнопок */
 .badge.bg-purple {
-    background-color: #6f42c1;
-    /* Классический bootstrap-фиолетовый */
-    color: white;
+  background-color: #6f42c1;
+  /* Классический bootstrap-фиолетовый */
+  color: white;
 }
 
 .card-actions {
-    opacity: 0;
-    transition: opacity 0.3s ease;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .card:hover .card-actions {
-    opacity: 1;
+  opacity: 1;
 }
 
 .celebrity-img {
-    transition: transform 0.3s ease;
+  transition: transform 0.3s ease;
 }
 
 .card:hover .celebrity-img {
-    transform: scale(1.05);
+  transform: scale(1.05);
 }
 
 .pagination {
-    margin: 20px 0;
+  margin: 20px 0;
 }
 
 .page-item.active .page-link {
-    background-color: #6f42c1;
-    border-color: #6f42c1;
+  background-color: #6f42c1;
+  border-color: #6f42c1;
 }
 
 .page-link {
-    color: #6f42c1;
-    cursor: pointer;
+  color: #6f42c1;
+  cursor: pointer;
 }
 
 .page-link:hover {
-    color: #4a2d7d;
+  color: #4a2d7d;
 }
 
 .card-body .text-muted {
-    display: none;
+  display: none;
 }
 
 
 .name-available {
-    color: #198754;
-    /* Зеленый цвет */
+  color: #198754;
+  /* Зеленый цвет */
 }
 
 .name-exists {
-    color: #dc3545;
-    /* Красный цвет */
-    font-weight: 500;
+  color: #dc3545;
+  /* Красный цвет */
+  font-weight: 500;
 }
 
 .card-body .bg-warning {
-    display: none;
+  display: none;
 }
 
 /* .deceased-card {
@@ -196,8 +200,8 @@ details.filter-section[open] summary {
 } */
 
 .deceased-photo {
-    position: relative;
-    display: inline-block;
+  position: relative;
+  display: inline-block;
 }
 
 

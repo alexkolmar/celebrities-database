@@ -204,7 +204,11 @@
     <details class="filter-section">
      <summary>
       <h4><i class="fas fa-filter feature-icon"></i>Фильтры</h4>
+      <button class="btn btn-outline-secondary btn-sm" onclick="toggleSortOrder()">
+  <i class="fas fa-sort-amount-down-alt"></i> Сначала новые
+</button>
      </summary>
+
 
      <div class="row filter-row">
       <div class="col-md-6 mb-3">
@@ -391,6 +395,10 @@
    if (celeb.citizenship && typeof celeb.citizenship === 'string') {
     celeb.citizenship = [celeb.citizenship];
    }
+
+   if (!celeb.createdAt) {
+    celeb.createdAt = new Date().toISOString();
+  }
 
    return celeb;
   }
@@ -984,16 +992,25 @@
      (!nameFilter || celeb.name.toLowerCase().includes(nameFilter));
    });
 
-   filteredData = filtered;
-   currentPage = 1;
-   renderFilteredCelebrityPage();
+    // Сортируем отфильтрованные данные по дате создания (новые сверху)
+  filteredData = filtered.sort((a, b) => {
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
+  
+  currentPage = 1;
+  renderFilteredCelebrityPage();
   }
 
   function renderCelebrities() {
-   filteredData = celebrities; // показываем все данные
-   currentPage = 1; // сбрасываем на первую страницу
-   renderFilteredCelebrityPage(); // рендерим страницу
-  }
+  // Сортируем по дате создания (новые сверху)
+  const sortedCelebrities = [...celebrities].sort((a, b) => {
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
+  
+  filteredData = sortedCelebrities; // показываем отсортированные данные
+  currentPage = 1; // сбрасываем на первую страницу
+  renderFilteredCelebrityPage(); // рендерим страницу
+}
 
   function renderFilteredCelebrityPage() {
    const container = document.getElementById('celebritiesList');
@@ -1719,6 +1736,29 @@
           </div>
       `).join('');
   }
+
+
+  let sortNewestFirst = true;
+
+function toggleSortOrder() {
+  sortNewestFirst = !sortNewestFirst;
+  renderCelebrities();
+}
+
+// Обновляем renderCelebrities()
+function renderCelebrities() {
+  const sortedCelebrities = [...celebrities].sort((a, b) => {
+    if (sortNewestFirst) {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    } else {
+      return new Date(a.createdAt) - new Date(b.createdAt);
+    }
+  });
+  
+  filteredData = sortedCelebrities;
+  currentPage = 1;
+  renderFilteredCelebrityPage();
+}
  </script>
 
 </body>
