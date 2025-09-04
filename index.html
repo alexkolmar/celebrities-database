@@ -101,8 +101,7 @@
 
      <div class="mb-3">
       <label class="form-label">Этническая принадлежность</label>
-      <select class="form-select" id="celebEthnicity">
-       <option value="">Не указано</option>
+      <select class="form-select" id="celebEthnicity" multiple size="4">
        <option value="european">Европейское происхождение</option>
        <option value="east-asian">Восточноазиатское происхождение</option>
        <option value="south-asian">Южноазиатское происхождение</option>
@@ -114,6 +113,8 @@
        <option value="mixed">Смешанное происхождение</option>
        <option value="other">Другое</option>
       </select>
+      <div class="form-text">Зажмите Ctrl/Cmd для выбора нескольких вариантов</div>
+      <div class="selected-ethnicities mt-2" id="selectedEthnicities"></div>
      </div>
 
      <div class="mb-3">
@@ -145,8 +146,7 @@
 
      <div class="mb-3">
       <label class="form-label">Сфера деятельности *</label>
-      <select class="form-select" id="celebOccupation" required>
-       <option value="">Выберите сферу</option>
+      <select class="form-select" id="celebOccupation" multiple size="4" required>
        <option value="актёр">Актёр</option>
        <option value="музыкант">Музыкант</option>
        <option value="спортсмен">Спортсмен</option>
@@ -154,6 +154,8 @@
        <option value="блогер">Блогер</option>
        <option value="другое">Другое</option>
       </select>
+      <div class="form-text">Зажмите Ctrl/Cmd для выбора нескольких вариантов</div>
+      <div class="selected-occupations mt-2" id="selectedOccupations"></div>
      </div>
 
      <!-- ЗАМЕНА ЗАГРУЗКИ ФАЙЛА НА ССЫЛКУ -->
@@ -363,6 +365,36 @@
  </div>
 
  <script>
+  // Функция для нормализации данных (преобразования строк в массивы)
+  function normalizeCelebrityData(celeb) {
+   // Нормализуем occupation
+   if (celeb.occupation && typeof celeb.occupation === 'string') {
+    celeb.occupation = [celeb.occupation];
+   }
+
+   // Нормализуем ethnicity
+   if (celeb.ethnicity && typeof celeb.ethnicity === 'string') {
+    celeb.ethnicity = [celeb.ethnicity];
+   }
+
+   // Нормализуем hairColor (на случай если это строка)
+   if (celeb.hairColor && typeof celeb.hairColor === 'string') {
+    celeb.hairColor = [celeb.hairColor];
+   }
+
+   // Нормализуем eyeColor (на случай если это строка)
+   if (celeb.eyeColor && typeof celeb.eyeColor === 'string') {
+    celeb.eyeColor = [celeb.eyeColor];
+   }
+
+   // Нормализуем citizenship (на случай если это строка)
+   if (celeb.citizenship && typeof celeb.citizenship === 'string') {
+    celeb.citizenship = [celeb.citizenship];
+   }
+
+   return celeb;
+  }
+
   // Показ/скрытие поля даты смерти
   document.getElementById('celebIsDeceased').addEventListener('change', function () {
    const deathDateField = document.getElementById('deathDateField');
@@ -411,6 +443,8 @@
 
   let selectedCountries = [];
   let selectedEyeColors = [];
+  let selectedEthnicities = [];
+  let selectedOccupations = [];
   let editingCelebrityId = null; // Для хранения ID редактируемой карточки
   let currentPage = 1;
   const itemsPerPage = 20; // по 20 карточек на страницу
@@ -615,11 +649,27 @@
    updateSelectedEyeColors();
   }
 
+  function migrateOldData() {
+   celebrities.forEach(celeb => {
+    // Конвертируем ethnicity из строки в массив
+    if (celeb.ethnicity && typeof celeb.ethnicity === 'string') {
+     celeb.ethnicity = celeb.ethnicity ? [celeb.ethnicity] : [];
+    }
+
+    // Конвертируем occupation из строки в массив
+    if (celeb.occupation && typeof celeb.occupation === 'string') {
+     celeb.occupation = [celeb.occupation];
+    }
+   });
+   saveData();
+  }
+
   // Остальные функции
   function loadData() {
    const savedData = localStorage.getItem('celebritiesData');
    if (savedData) {
-    celebrities = JSON.parse(savedData);
+    // Нормализуем данные при загрузке из localStorage
+    celebrities = JSON.parse(savedData).map(normalizeCelebrityData);
    }
    renderCelebrities();
   }
@@ -707,6 +757,17 @@
     setTimeout(checkNameAvailability, 100);
    }
 
+   // Обработчики для множественного выбора
+   const ethnicitySelect = document.getElementById('celebEthnicity');
+   if (ethnicitySelect) {
+    ethnicitySelect.addEventListener('change', updateSelectedEthnicities);
+   }
+
+   const occupationSelect = document.getElementById('celebOccupation');
+   if (occupationSelect) {
+    occupationSelect.addEventListener('change', updateSelectedOccupations);
+   }
+
   }
 
   function getZodiacSign(birthDate) {
@@ -770,8 +831,10 @@
     .map(opt => opt.value);
    const normalizedHairColor = hairColor.map(color => getBaseHairColor(color));
    const eyeColor = selectedEyeColors;
-   const ethnicity = document.getElementById('celebEthnicity').value;
-   const occupation = document.getElementById('celebOccupation').value;
+   const ethnicity = Array.from(document.getElementById('celebEthnicity').selectedOptions)
+    .map(opt => opt.value);
+   const occupation = Array.from(document.getElementById('celebOccupation').selectedOptions)
+    .map(opt => opt.value);
    const gender = document.querySelector('input[name="celebGender"]:checked')?.value;
    const photoUrl = document.getElementById('celebPhotoUrl').value;
 
@@ -830,8 +893,12 @@
    document.getElementById('celebHeight').value = '';
    document.getElementById('celebHairColor').selectedIndex = -1;
    document.getElementById('celebEyeColor').selectedIndex = -1;
-   document.getElementById('celebEthnicity').value = '';
-   document.getElementById('celebOccupation').value = '';
+   document.getElementById('celebEthnicity').selectedIndex = -1;
+   document.getElementById('celebOccupation').selectedIndex = -1;
+   selectedEthnicities = [];
+   selectedOccupations = [];
+   updateSelectedEthnicities();
+   updateSelectedOccupations();
    document.querySelectorAll('input[name="celebGender"]').forEach(radio => {
     radio.checked = false;
    });
@@ -898,7 +965,7 @@
      (hairColor === 'рыжая' && celeb.hairColor.includes('рыжий')) ||
      (hairColor === 'седой' && celeb.hairColor.includes('седая')) ||
      (hairColor === 'седая' && celeb.hairColor.includes('седой'))) &&
-     (!occupation || celeb.occupation === occupation ||
+     (!occupation || (celeb.occupation && celeb.occupation.includes(occupation)) ||
       (occupation === 'актёр' && celeb.occupation === 'актриса') ||
       (occupation === 'музыкант' && celeb.occupation === 'музыкант') ||
       (occupation === 'спортсмен' && celeb.occupation === 'спортсменка') ||
@@ -909,7 +976,7 @@
       (status === 'deceased' && celeb.isDeceased)
      ) &&
      (!eyeColor || (celeb.eyeColor && celeb.eyeColor.includes(eyeColor))) &&
-     (!ethnicity || celeb.ethnicity === ethnicity) &&
+     (!ethnicity || (celeb.ethnicity && celeb.ethnicity.includes(ethnicity))) &&
      (!zodiac || celeb.zodiac === zodiac) &&
      (!citizenship || (celeb.citizenship && celeb.citizenship.some(c => c.toLowerCase().includes(citizenship)))) &&
      (!celeb.birthDate || (calculateAge(celeb.birthDate) >= ageMin && calculateAge(celeb.birthDate) <= ageMax)) &&
@@ -983,7 +1050,7 @@
                     
                     <div class="mb-2">
                         ${celeb.hairColor.map(color => `<span class="badge bg-purple">${getGenderHairColor(color, celeb.gender)}</span>`).join('')}
-                        <span class="badge bg-success">${getGenderOccupation(celeb.occupation, celeb.gender)}</span>
+                        ${celeb.occupation.map(occ => `<span class="badge bg-success">${getGenderOccupation(occ, celeb.gender)}</span>`).join('')}
                         ${celeb.gender === 'мужчина' ?
       '<span class="badge bg-primary"><i class="fas fa-mars me-1"></i>Мужчина</span>' :
       '<span class="badge bg-danger"><i class="fas fa-venus me-1"></i>Женщина</span>'}
@@ -994,7 +1061,8 @@
                             <span class="badge bg-info">👁️ ${celeb.eyeColor.map(getEyeColorLabel).join(', ')}</span>
                         </div>` : ''}
                     
-                    ${celeb.ethnicity ? `<div class="mb-1"><small>Происхождение: ${getEthnicityLabel(celeb.ethnicity)}</small></div>` : ''}
+                    ${celeb.ethnicity && celeb.ethnicity.length > 0 ?
+      `<div class="mb-1"><small>Происхождение: ${celeb.ethnicity.map(e => getEthnicityLabel(e)).join(', ')}</small></div>` : ''}
                     ${celeb.citizenship && celeb.citizenship.length > 0 ?
       `<div class="mb-1"><small>Гражданство: ${celeb.citizenship.map(c => {
        const country = countries.find(cnt => cnt.name === c);
@@ -1046,7 +1114,8 @@
     const gistData = await response.json();
 
     if (gistData.files && gistData.files['celebrities.json']) {
-     celebrities = JSON.parse(gistData.files['celebrities.json'].content);
+     // Нормализуем данные при загрузке
+     celebrities = JSON.parse(gistData.files['celebrities.json'].content).map(normalizeCelebrityData);
 
      // Загружаем доверенных пользователей если есть
      if (gistData.files['trustedUsers.json']) {
@@ -1153,7 +1222,11 @@
   }
 
   function mergeData(remoteData, localData, userLogin) {
-   const merged = [...remoteData];
+
+   const normalizedRemote = remoteData.map(normalizeCelebrityData);
+   const normalizedLocal = localData.map(normalizeCelebrityData);
+
+   const merged = [...normalizedRemote];
 
    // Сначала очищаем локальные данные от старых пометок конфликтов
    const cleanedLocalData = localData.map(item => {
@@ -1199,6 +1272,11 @@
     }
    });
 
+   normalizedLocal.forEach(localItem => {
+    const existingIndex = merged.findIndex(r => r.id === localItem.id);
+    // ...
+   });
+
    return merged;
   }
 
@@ -1240,7 +1318,19 @@
    });
    updateSelectedEyeColors();
 
-   document.getElementById('celebEthnicity').value = celeb.ethnicity || '';
+   // Этническая принадлежность
+   const ethnicitySelect = document.getElementById('celebEthnicity');
+   Array.from(ethnicitySelect.options).forEach(option => {
+    option.selected = celeb.ethnicity.includes(option.value);
+   });
+   updateSelectedEthnicities();
+
+   // Сфера деятельности
+   const occupationSelect = document.getElementById('celebOccupation');
+   Array.from(occupationSelect.options).forEach(option => {
+    option.selected = celeb.occupation.includes(option.value);
+   });
+   updateSelectedOccupations();
 
    // Гражданство
    selectedCountries = [...celeb.citizenship];
@@ -1251,7 +1341,6 @@
     radio.checked = (radio.value === celeb.gender);
    });
 
-   document.getElementById('celebOccupation').value = celeb.occupation;
    document.getElementById('celebPhotoUrl').value = celeb.photo;
    document.getElementById('photoPreview').src = celeb.photo;
    document.getElementById('photoPreview').style.display = 'block';
@@ -1278,8 +1367,10 @@
    const hairColor = Array.from(document.getElementById('celebHairColor').selectedOptions)
     .map(opt => opt.value);
    const eyeColor = selectedEyeColors;
-   const ethnicity = document.getElementById('celebEthnicity').value;
-   const occupation = document.getElementById('celebOccupation').value;
+   const ethnicity = Array.from(document.getElementById('celebEthnicity').selectedOptions)
+    .map(opt => opt.value);
+   const occupation = Array.from(document.getElementById('celebOccupation').selectedOptions)
+    .map(opt => opt.value);
    const gender = document.querySelector('input[name="celebGender"]:checked')?.value;
    const photoUrl = document.getElementById('celebPhotoUrl').value;
 
@@ -1393,6 +1484,99 @@
    } else {
     return 'умер';
    }
+  }
+
+  // Функции для этнической принадлежности
+  function updateSelectedEthnicities() {
+   const ethnicitySelect = document.getElementById('celebEthnicity');
+   selectedEthnicities = Array.from(ethnicitySelect.selectedOptions).map(opt => opt.value);
+
+   const container = document.getElementById('selectedEthnicities');
+   if (!container) return;
+
+   container.innerHTML = '';
+
+   if (selectedEthnicities.length === 0) {
+    container.innerHTML = '<span class="text-muted">Этничности появятся здесь...</span>';
+    return;
+   }
+
+   selectedEthnicities.forEach(ethnicity => {
+    const badge = document.createElement('span');
+    badge.className = 'badge bg-info me-1 mb-1';
+    badge.innerHTML = `${getEthnicityLabel(ethnicity)} 
+                          <span style="cursor:pointer; margin-left:5px;" onclick="removeEthnicity('${ethnicity}')">×</span>`;
+    container.appendChild(badge);
+   });
+  }
+
+  function removeEthnicity(ethnicity) {
+   const select = document.getElementById('celebEthnicity');
+   const options = select.options;
+
+   for (let i = 0; i < options.length; i++) {
+    if (options[i].value === ethnicity) {
+     options[i].selected = false;
+     break;
+    }
+   }
+
+   updateSelectedEthnicities();
+  }
+
+  // Функции для сфер деятельности
+  function updateSelectedOccupations() {
+   const occupationSelect = document.getElementById('celebOccupation');
+   selectedOccupations = Array.from(occupationSelect.selectedOptions).map(opt => opt.value);
+
+   const container = document.getElementById('selectedOccupations');
+   if (!container) return;
+
+   container.innerHTML = '';
+
+   if (selectedOccupations.length === 0) {
+    container.innerHTML = '<span class="text-muted">Сферы деятельности появятся здесь...</span>';
+    return;
+   }
+
+   selectedOccupations.forEach(occupation => {
+    const badge = document.createElement('span');
+    badge.className = 'badge bg-success me-1 mb-1';
+    badge.innerHTML = `${getOccupationLabel(occupation)} 
+                          <span style="cursor:pointer; margin-left:5px;" onclick="removeOccupation('${occupation}')">×</span>`;
+    container.appendChild(badge);
+   });
+  }
+
+  function removeOccupation(occupation) {
+   const select = document.getElementById('celebOccupation');
+   const options = select.options;
+
+   for (let i = 0; i < options.length; i++) {
+    if (options[i].value === occupation) {
+     options[i].selected = false;
+     break;
+    }
+   }
+
+   updateSelectedOccupations();
+  }
+
+  // Функция для получения label занятия
+  function getOccupationLabel(value) {
+   const labels = {
+    'актёр': 'Актёр',
+    'музыкант': 'Музыкант',
+    'спортсмен': 'Спортсмен',
+    'модель': 'Модель',
+    'блогер': 'Блогер',
+    'политик': 'Политик',
+    'ученый': 'Ученый',
+    'писатель': 'Писатель',
+    'художник': 'Художник',
+    'другое': 'Другое'
+   };
+   return labels[value] || value;
   }
 
   function renderPagination(totalItems) {
