@@ -8,6 +8,7 @@
  <link rel="shortcut icon" href="https://vk.com/images/emoji/2B50_2x.png" type="image/x-icon">
  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.css" rel="stylesheet">
  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.css">
+ <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
  <link rel="stylesheet" href="style.css">
  <script src="config.js"></script>
 </head>
@@ -204,9 +205,29 @@
     <details class="filter-section">
      <summary>
       <h4><i class="fas fa-filter feature-icon"></i>Фильтры</h4>
-      <button class="btn btn-outline-secondary btn-sm" onclick="toggleSortOrder()">
-  <i class="fas fa-sort-amount-down-alt"></i> Сначала новые
-</button>
+      <div class="dropdown">
+       <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="sortDropdown"
+        data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="fas fa-sort"></i> Сортировка
+       </button>
+       <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+        <li><a class="dropdown-item" href="#" onclick="changeSortOrder('newest')">
+          <i class="fas fa-sort-amount-down-alt"></i> Сначала новые
+         </a></li>
+        <li><a class="dropdown-item" href="#" onclick="changeSortOrder('oldest')">
+          <i class="fas fa-sort-amount-up-alt"></i> Сначала старые
+         </a></li>
+        <li>
+         <hr class="dropdown-divider">
+        </li>
+        <li><a class="dropdown-item" href="#" onclick="changeSortOrder('az')">
+          <i class="fas fa-sort-alpha-down"></i> А-Я / A-Z
+         </a></li>
+        <li><a class="dropdown-item" href="#" onclick="changeSortOrder('za')">
+          <i class="fas fa-sort-alpha-up-alt"></i> Я-А / Z-A
+         </a></li>
+       </ul>
+      </div>
      </summary>
 
 
@@ -398,7 +419,7 @@
 
    if (!celeb.createdAt) {
     celeb.createdAt = new Date().toISOString();
-  }
+   }
 
    return celeb;
   }
@@ -459,6 +480,7 @@
   let filteredData = []; // для хранения отфильтрованных данных
   const ADMIN_USERNAME = 'alexkolmar'; // ЗАМЕНИ на свой GitHub логин!
   let trustedUsers = [];
+  let currentSortOrder = 'newest'; // newest, oldest, az, za
 
   // ===== ОСНОВНЫЕ ФУНКЦИИ =====
   let celebrities = [];
@@ -485,6 +507,7 @@
    loadTrustedUsers(); // ← ДОБАВЬ ЭТУ СТРОЧКУ
    setupEventListeners();
    setupCountrySearch();
+   updateSortButtonText();
   });
 
   // НАСТРОЙКА ПОИСКА СТРАН (ВЕРНУЛИ РАБОЧУЮ ВЕРСИЮ)
@@ -992,25 +1015,37 @@
      (!nameFilter || celeb.name.toLowerCase().includes(nameFilter));
    });
 
-    // Сортируем отфильтрованные данные по дате создания (новые сверху)
-  filteredData = filtered.sort((a, b) => {
-    return new Date(b.createdAt) - new Date(a.createdAt);
-  });
-  
-  currentPage = 1;
-  renderFilteredCelebrityPage();
+   // Применяем текущую сортировку к отфильтрованным данным
+   switch (currentSortOrder) {
+    case 'newest':
+     filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+     break;
+    case 'oldest':
+     filtered.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+     break;
+    case 'az':
+     filtered.sort((a, b) => a.name.localeCompare(b.name));
+     break;
+    case 'za':
+     filtered.sort((a, b) => b.name.localeCompare(a.name));
+     break;
+   }
+
+   filteredData = filtered;
+   currentPage = 1;
+   renderFilteredCelebrityPage();
   }
 
   function renderCelebrities() {
-  // Сортируем по дате создания (новые сверху)
-  const sortedCelebrities = [...celebrities].sort((a, b) => {
+   // Сортируем по дате создания (новые сверху)
+   const sortedCelebrities = [...celebrities].sort((a, b) => {
     return new Date(b.createdAt) - new Date(a.createdAt);
-  });
-  
-  filteredData = sortedCelebrities; // показываем отсортированные данные
-  currentPage = 1; // сбрасываем на первую страницу
-  renderFilteredCelebrityPage(); // рендерим страницу
-}
+   });
+
+   filteredData = sortedCelebrities; // показываем отсортированные данные
+   currentPage = 1; // сбрасываем на первую страницу
+   renderFilteredCelebrityPage(); // рендерим страницу
+  }
 
   function renderFilteredCelebrityPage() {
    const container = document.getElementById('celebritiesList');
@@ -1740,25 +1775,79 @@
 
   let sortNewestFirst = true;
 
-function toggleSortOrder() {
-  sortNewestFirst = !sortNewestFirst;
-  renderCelebrities();
-}
+  function changeSortOrder(order) {
+   currentSortOrder = order;
+   renderCelebrities();
+   updateSortButtonText();
+  }
 
-// Обновляем renderCelebrities()
-function renderCelebrities() {
-  const sortedCelebrities = [...celebrities].sort((a, b) => {
-    if (sortNewestFirst) {
-      return new Date(b.createdAt) - new Date(a.createdAt);
-    } else {
-      return new Date(a.createdAt) - new Date(b.createdAt);
-    }
-  });
-  
-  filteredData = sortedCelebrities;
-  currentPage = 1;
-  renderFilteredCelebrityPage();
-}
+  function updateSortButtonText() {
+   const button = document.querySelector('#sortDropdown');
+   if (!button) return;
+
+   const icons = {
+    'newest': 'fas fa-sort-amount-down-alt',
+    'oldest': 'fas fa-sort-amount-up-alt',
+    'az': 'fas fa-sort-alpha-down',
+    'za': 'fas fa-sort-alpha-up-alt'
+   };
+
+   // Обновляем иконку
+   const iconElement = button.querySelector('i');
+   if (iconElement) {
+    iconElement.className = icons[currentSortOrder] || 'fas fa-sort';
+   }
+  }
+
+  // Обновляем renderCelebrities()
+  function renderCelebrities() {
+   let sortedCelebrities = [...celebrities];
+
+   // Применяем выбранную сортировку
+   switch (currentSortOrder) {
+    case 'newest':
+     sortedCelebrities.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+     break;
+    case 'oldest':
+     sortedCelebrities.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+     break;
+    case 'az':
+     sortedCelebrities.sort((a, b) => a.name.localeCompare(b.name));
+     break;
+    case 'za':
+     sortedCelebrities.sort((a, b) => b.name.localeCompare(a.name));
+     break;
+    default:
+     sortedCelebrities.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+   }
+
+   filteredData = sortedCelebrities;
+   currentPage = 1;
+   renderFilteredCelebrityPage();
+  }
+
+  function changeSortOrder(order) {
+   currentSortOrder = order;
+   localStorage.setItem('sortOrder', order); // Сохраняем выбор
+   renderCelebrities();
+   updateSortButtonText();
+  }
+
+  // И при загрузке восстанавливайте
+  function loadData() {
+   const savedData = localStorage.getItem('celebritiesData');
+   if (savedData) {
+    celebrities = JSON.parse(savedData).map(normalizeCelebrityData);
+   }
+
+   // Восстанавливаем сохранённую сортировку
+   const savedSortOrder = localStorage.getItem('sortOrder');
+   if (savedSortOrder) {
+    currentSortOrder = savedSortOrder;
+   }
+
+   renderCelebrities();
+  }
  </script>
 
 </body>
