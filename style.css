@@ -216,3 +216,7 @@ details.filter-section[open] summary {
   background: #000;
   background: linear-gradient(135deg, #888 65px, #000 65px, #000 83px, #888 83px);
 }
+
+#pagination .pagination.mt-4 {
+  flex-wrap: wrap;
+}
