@@ -1162,13 +1162,6 @@
      // Нормализуем данные при загрузке
      celebrities = JSON.parse(gistData.files['celebrities.json'].content).map(normalizeCelebrityData);
 
-     // Загружаем доверенных пользователей если есть
-     if (gistData.files['trustedUsers.json']) {
-      trustedUsers = JSON.parse(gistData.files['trustedUsers.json'].content);
-      saveTrustedUsers();
-      updateTrustedUsersList();
-     }
-
      // Сохраняем информацию о владельце Gist
      if (gistData.owner && gistData.owner.login) {
       localStorage.setItem('githubUser', gistData.owner.login);
