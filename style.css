@@ -220,3 +220,7 @@ details.filter-section[open] summary {
 #pagination .pagination.mt-4 {
   flex-wrap: wrap;
 }
+
+#gistIdInput {
+  display: none;
+}
