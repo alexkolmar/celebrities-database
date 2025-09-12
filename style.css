@@ -10,6 +10,10 @@ body {
   padding-bottom: 50px;
 }
 
+.navbar-brand .fa-star {
+  color: var(--bs-warning);
+}
+
 details.add-form summary,
 details.filter-section summary {
   display: flex;
@@ -267,6 +271,11 @@ details.filter-section[open] summary {
 
 .popup h2 {
   text-align: center;
+}
+
+.popup a {
+  text-decoration: none;
+  color: var(--bs-orange);
 }
 
 /* Затемнение фона */
