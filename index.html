@@ -19,8 +19,20 @@
    <span class="navbar-brand mb-0 h1">
     <i class="fas fa-star me-2"></i>База знаменитостей
    </span>
+   <!-- Кнопка для открытия -->
+   <button class="open-btn" onclick="openPopup()">F.A.Q.</button>
   </div>
  </nav>
+
+ <!-- Затемнение фона -->
+ <div class="overlay" id="overlay" onclick="closePopup()"></div>
+
+ <!-- Всплывающее окно -->
+ <div class="popup" id="popup">
+  <button class="close-btn" onclick="closePopup()">&times;</button>
+  <h2>Скоро здесь будет F.A.Q.</h2>
+  <p>Это текст всплывающего окна. Здесь может быть любая информация, которую вы хотите показать пользователю.</p>
+ </div>
 
  <div class="container">
   <div class="row">
@@ -1740,6 +1752,25 @@
 
    renderCelebrities();
   }
+ </script>
+
+ <script>
+  function openPopup() {
+   document.getElementById('popup').style.display = 'block';
+   document.getElementById('overlay').style.display = 'block';
+  }
+
+  function closePopup() {
+   document.getElementById('popup').style.display = 'none';
+   document.getElementById('overlay').style.display = 'none';
+  }
+
+  // Закрытие по клавише Escape
+  document.addEventListener('keydown', function (event) {
+   if (event.key === 'Escape') {
+    closePopup();
+   }
+  });
  </script>
 
 </body>
