@@ -1346,6 +1346,7 @@
   let currentGistId = null;
 
   // 1. Функция загрузки из Gist
+// 1. Функция загрузки из Gist (упрощенная версия)
 async function loadFromGist() {
   const gistId = document.getElementById('gistIdInput').value;
   if (!gistId) {
@@ -1354,38 +1355,62 @@ async function loadFromGist() {
   }
 
   try {
-    const response = await fetch(`https://api.github.com/gists/${gistId}`, {
-      headers: {
-        'Accept': 'application/vnd.github.v3+json',
-        'X-GitHub-Api-Version': '2022-11-28'
-      }
-    });
+    // Пробуем разные RAW URL форматы
+    const rawUrls = [
+      `https://gist.githubusercontent.com/alexkolmar/${gistId}/raw/celebrities.json`,
+      `https://gist.githubusercontent.com/alexkolmar/${gistId}/raw/`,
+      `https://raw.githubusercontent.com/gist/${gistId}/raw/celebrities.json`,
+      `https://raw.githubusercontent.com/gist/${gistId}/raw/`,
+      `https://cdn.statically.io/gist/alexkolmar/${gistId}/raw/celebrities.json`
+    ];
 
-    if (!response.ok) {
-      throw new Error(`Ошибка HTTP: ${response.status} - ${response.statusText}`);
+    for (let i = 0; i < rawUrls.length; i++) {
+      try {
+        console.log('Пробуем URL:', rawUrls[i]);
+        const response = await fetch(rawUrls[i]);
+        
+        if (response.ok) {
+          const content = await response.json();
+          celebrities = content.map(normalizeCelebrityData);
+          saveData();
+          renderCelebrities();
+          currentGistId = gistId;
+          alert('✅ Данные загружены!');
+          return;
+        }
+      } catch (e) {
+        console.log('Не сработало:', e);
+        // Пробуем следующий URL
+      }
     }
 
-    const gistData = await response.json();
-
-    if (gistData.files && gistData.files['celebrities.json']) {
-      // Нормализуем данные при загрузке
-      celebrities = JSON.parse(gistData.files['celebrities.json'].content).map(normalizeCelebrityData);
-
-      // Сохраняем информацию о владельце Gist
-      if (gistData.owner && gistData.owner.login) {
-        localStorage.setItem('githubUser', gistData.owner.login);
+    // Если RAW не сработал, пробуем API с proxy
+    try {
+      const proxyUrl = 'https://api.allorigins.win/raw?url=';
+      const apiUrl = `https://api.github.com/gists/${gistId}`;
+      
+      const response = await fetch(proxyUrl + encodeURIComponent(apiUrl));
+      
+      if (response.ok) {
+        const gistData = await response.json();
+        if (gistData.files && gistData.files['celebrities.json']) {
+          celebrities = JSON.parse(gistData.files['celebrities.json'].content).map(normalizeCelebrityData);
+          saveData();
+          renderCelebrities();
+          currentGistId = gistId;
+          alert('✅ Данные загружены через proxy!');
+          return;
+        }
       }
-
-      saveData();
-      renderCelebrities();
-      currentGistId = gistId;
-      alert('✅ Данные загружены!');
-    } else {
-      throw new Error('Gist не содержит файла celebrities.json');
+    } catch (proxyError) {
+      console.log('Proxy тоже не сработал:', proxyError);
     }
+
+    throw new Error('Не удалось загрузить данные. Проверьте ID Gist');
+
   } catch (error) {
     alert('❌ Ошибка загрузки: ' + error.message);
-    console.error('Детали ошибки:', error);
+    console.error('Детали:', error);
   }
 }
 
