@@ -1392,22 +1392,22 @@
       renderFilteredCelebrityPage(); // рендерим страницу
     }
 
-    // Добавьте эту функцию ПЕРЕД renderFilteredCelebrityPage()
-    function renderPhotoSlider(celeb) {
-      // Используем массив photos если есть, иначе старую photo
-      const photos = celeb.photos || [celeb.photo];
-
-      if (photos.length <= 1) {
-        // Если фото одно - просто показываем его
-        return `
+    // ===== ФУНКЦИИ ДЛЯ СЛАЙДЕРА ФОТО =====
+function renderPhotoSlider(celeb) {
+  // Используем массив photos если есть, иначе старую photo
+  const photos = celeb.photos || [celeb.photo];
+  
+  if (photos.length <= 1) {
+    // Если фото одно - просто показываем его
+    return `
       <img src="${photos[0]}" class="celebrity-img" 
            alt="${celeb.name}" 
            onerror="this.src='https://placeholder.darth-kolmar.workers.dev?w=300&h=200&bg=cccccc&fg=333333&txt=${encodeURIComponent(celeb.name)}'">
     `;
-      }
-
-      // Если несколько фото - делаем слайдер
-      return `
+  }
+  
+  // Если несколько фото - делаем слайдер
+  return `
     <div class="photo-slider" id="slider-${celeb.id}">
       <div class="slider-main">
         <img src="${photos[0]}" class="celebrity-img slider-current" 
@@ -1428,45 +1428,46 @@
       </div>
     </div>
   `;
-    }
+}
 
-    // Функции для управления слайдером
-    function changePhoto(celebId, direction) {
-      const celeb = celebrities.find(c => c.id === celebId);
-      if (!celeb) return;
+function changePhoto(celebId, direction) {
+  const celeb = celebrities.find(c => c.id === celebId);
+  if (!celeb) return;
+  
+  const photos = celeb.photos || [celeb.photo];
+  const slider = document.getElementById(`slider-${celebId}`);
+  if (!slider) return;
+  
+  const currentImg = slider.querySelector('.slider-current');
+  const currentIndex = parseInt(currentImg.dataset.index || 0);
+  
+  let newIndex = currentIndex + direction;
+  if (newIndex < 0) newIndex = photos.length - 1;
+  if (newIndex >= photos.length) newIndex = 0;
+  
+  showPhoto(celebId, newIndex);
+}
 
-      const photos = celeb.photos || [celeb.photo];
-      const slider = document.getElementById(`slider-${celebId}`);
-      if (!slider) return;
-
-      const currentImg = slider.querySelector('.slider-current');
-      const currentIndex = parseInt(currentImg.dataset.index || 0);
-
-      let newIndex = currentIndex + direction;
-      if (newIndex < 0) newIndex = photos.length - 1;
-      if (newIndex >= photos.length) newIndex = 0;
-
-      showPhoto(celebId, newIndex);
-    }
-
-    function showPhoto(celebId, index) {
-      const celeb = celebrities.find(c => c.id === celebId);
-      if (!celeb) return;
-
-      const photos = celeb.photos || [celeb.photo];
-      const slider = document.getElementById(`slider-${celebId}`);
-
-      if (!slider || index < 0 || index >= photos.length) return;
-
-      // Обновляем основное фото
-      const img = slider.querySelector('.slayer-current');
-      img.src = photos[index];
-      img.dataset.index = index;
-
-      // Обновляем счетчик
-      slider.querySelector('.slider-counter').textContent = `${index + 1}/${photos.length}`;
-    }
-
+function showPhoto(celebId, index) {
+  const celeb = celebrities.find(c => c.id === celebId);
+  if (!celeb) return;
+  
+  const photos = celeb.photos || [celeb.photo];
+  const slider = document.getElementById(`slider-${celebId}`);
+  
+  if (!slider || index < 0 || index >= photos.length) return;
+  
+  // Обновляем основное фото
+  const img = slider.querySelector('.slider-current');
+  img.src = photos[index];
+  img.dataset.index = index;
+  
+  // Обновляем счетчик
+  const counter = slider.querySelector('.slider-counter');
+  if (counter) {
+    counter.textContent = `${index + 1}/${photos.length}`;
+  }
+}
     function renderFilteredCelebrityPage() {
       const container = document.getElementById('celebritiesList');
       container.innerHTML = '';

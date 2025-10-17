@@ -330,8 +330,10 @@ details.filter-section[open] summary {
   color: #333;
 }
 
+/* Стили для слайдера фото */
 .photo-slider {
   position: relative;
+  display: block;
 }
 
 .slider-controls {
@@ -343,27 +345,45 @@ details.filter-section[open] summary {
   justify-content: center;
   align-items: center;
   gap: 10px;
+  z-index: 10;
 }
 
 .slider-counter {
   color: white;
-  background: rgba(0,0,0,0.5);
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 12px;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 4px 12px;
+  border-radius: 15px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.slider-prev,
+.slider-next {
+  background: rgba(0, 0, 0, 0.7) !important;
+  border: 2px solid white !important;
+  border-radius: 50% !important;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slider-prev:hover,
+.slider-next:hover {
+  background: rgba(0, 0, 0, 0.9) !important;
+  transform: scale(1.1);
 }
 
 .celebrity-img {
   width: 100%;
   height: 200px;
   object-fit: cover;
+  display: block;
 }
 
-.photo-preview-item {
+.slider-main {
   position: relative;
-  display: inline-block;
-  margin-right: 10px;
-  margin-bottom: 10px;
 }
 
 @media screen and (max-width: 540px) {
