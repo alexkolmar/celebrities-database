@@ -372,7 +372,7 @@
               <div class="input-group mb-2">
                 <input type="url" class="form-control photo-url-input" placeholder="https://example.com/photo1.jpg"
                   required>
-                <button class="btn btn-outline-danger" type="button" onclick="removePhotoField(this)">
+                <button class="btn btn-outline-danger" type="button" onclick="removePhotoField(this)" disabled>
                   <i class="fas fa-times"></i>
                 </button>
               </div>
@@ -958,6 +958,55 @@
       }
     }
 
+    // ===== ФУНКЦИИ ДЛЯ УПРАВЛЕНИЯ ФОТО =====
+    function addPhotoField() {
+      const container = document.getElementById('photoUrlsContainer');
+      const newField = document.createElement('div');
+      newField.className = 'input-group mb-2';
+      newField.innerHTML = `
+    <input type="url" class="form-control photo-url-input" placeholder="https://example.com/photo.jpg" required>
+    <button class="btn btn-outline-danger" type="button" onclick="removePhotoField(this)">
+      <i class="fas fa-times"></i>
+    </button>
+  `;
+      container.appendChild(newField);
+
+      // Добавляем обработчик для предпросмотра
+      const input = newField.querySelector('.photo-url-input');
+      input.addEventListener('input', updatePhotoPreviews);
+    }
+
+    function removePhotoField(button) {
+      const field = button.closest('.input-group');
+      if (document.querySelectorAll('.photo-url-input').length > 1) {
+        field.remove();
+        updatePhotoPreviews();
+      }
+    }
+
+    function updatePhotoPreviews() {
+      const previewsContainer = document.getElementById('photoPreviews');
+      const inputs = document.querySelectorAll('.photo-url-input');
+
+      previewsContainer.innerHTML = '';
+
+      inputs.forEach((input, index) => {
+        if (input.value) {
+          const preview = document.createElement('div');
+          preview.className = 'photo-preview-item me-2 mb-2';
+          preview.style.position = 'relative';
+          preview.style.display = 'inline-block';
+          preview.innerHTML = `
+        <img src="${input.value}" class="photo-preview" 
+             style="height: 80px; width: auto; border: 2px solid ${index === 0 ? '#0d6efd' : '#6c757d'}; border-radius: 4px;"
+             onerror="this.style.display='none'">
+        ${index === 0 ? '<span class="badge bg-primary" style="position: absolute; top: 5px; left: 5px; font-size: 10px;">Главная</span>' : ''}
+      `;
+          previewsContainer.appendChild(preview);
+        }
+      });
+    }
+
     function setupEventListeners() {
       // Предпросмотр изображения по URL
       const photoUrlInput = document.getElementById('celebPhotoUrl');
@@ -976,6 +1025,12 @@
             preview.style.display = 'none';
           }
         });
+      }
+
+      // инициализация фото полей
+      const firstPhotoInput = document.querySelector('.photo-url-input');
+      if (firstPhotoInput) {
+        firstPhotoInput.addEventListener('input', updatePhotoPreviews);
       }
 
       // Функция добавления поля для фото
@@ -1191,6 +1246,7 @@
 
     function resetForm() {
       if (editingCelebrityId) return;
+
       document.getElementById('celebName').value = '';
       document.getElementById('celebBirthDate').value = '';
       document.getElementById('celebIsDeceased').checked = false;
@@ -1208,11 +1264,22 @@
       document.querySelectorAll('input[name="celebGender"]').forEach(radio => {
         radio.checked = false;
       });
-      document.getElementById('celebPhotoUrl').value = '';
-      document.getElementById('photoPreview').style.display = 'none';
+
+      // СБРОС ФОТО ПОЛЕЙ
       const photoContainer = document.getElementById('photoUrlsContainer');
       photoContainer.innerHTML = '';
-      addPhotoField(); // Добавляем одно поле по умолчанию
+
+      // Добавляем одно поле по умолчанию
+      const defaultField = document.createElement('div');
+      defaultField.className = 'input-group mb-2';
+      defaultField.innerHTML = `
+    <input type="url" class="form-control photo-url-input" placeholder="https://example.com/photo1.jpg" required>
+    <button class="btn btn-outline-danger" type="button" onclick="removePhotoField(this)" disabled>
+      <i class="fas fa-times"></i>
+    </button>
+  `;
+      photoContainer.appendChild(defaultField);
+
       document.getElementById('photoPreviews').innerHTML = '';
       document.getElementById('countrySearch').value = '';
       selectedCountries = [];
@@ -1220,12 +1287,11 @@
       updateSelectedCountries();
       updateSelectedEyeColors();
 
-      // ДОБАВЛЯЕМ СБРОС СТАТУСА ИМЕНИ
+      // Сброс статуса имени
       const nameStatus = document.getElementById('nameStatus');
       nameStatus.textContent = '';
       nameStatus.className = 'form-text';
     }
-
     function resetFilters() {
       document.getElementById('filterHairColor').value = '';
       document.getElementById('filterOccupation').value = '';
@@ -1801,10 +1867,7 @@
         radio.checked = (radio.value === celeb.gender);
       });
 
-      document.getElementById('celebPhotoUrl').value = celeb.photo;
-      document.getElementById('photoPreview').src = celeb.photo;
-      document.getElementById('photoPreview').style.display = 'block';
-
+      // ЗАМЕНИТЕ ЭТОТ БЛОК - ФОТОГРАФИИ
       const photoContainer = document.getElementById('photoUrlsContainer');
       photoContainer.innerHTML = '';
 
@@ -1812,13 +1875,23 @@
       const celebPhotos = celeb.photos || [celeb.photo];
 
       celebPhotos.forEach((photoUrl, index) => {
-        addPhotoField();
-        const inputs = document.querySelectorAll('.photo-url-input');
-        if (inputs[index]) {
-          inputs[index].value = photoUrl;
-        }
+        const field = document.createElement('div');
+        field.className = 'input-group mb-2';
+        field.innerHTML = `
+      <input type="url" class="form-control photo-url-input" 
+             placeholder="https://example.com/photo${index + 1}.jpg" 
+             required 
+             value="${photoUrl}">
+      <button class="btn btn-outline-danger" type="button" 
+              onclick="removePhotoField(this)" 
+              ${celebPhotos.length === 1 ? 'disabled' : ''}>
+        <i class="fas fa-times"></i>
+      </button>
+    `;
+        photoContainer.appendChild(field);
       });
 
+      // Обновляем превью
       updatePhotoPreviews();
 
       // Меняем режим на редактирование
@@ -1835,7 +1908,7 @@
       const celebIndex = celebrities.findIndex(c => c.id === editingCelebrityId);
       if (celebIndex === -1) return;
 
-      // Получаем данные из формы (как в addCelebrity)
+      // Получаем данные из формы
       const name = document.getElementById('celebName').value;
       const birthDate = document.getElementById('celebBirthDate').value;
       const deathDate = document.getElementById('celebDeathDate').value;
@@ -1848,9 +1921,14 @@
       const occupation = Array.from(document.getElementById('celebOccupation').selectedOptions)
         .map(opt => opt.value);
       const gender = document.querySelector('input[name="celebGender"]:checked')?.value;
-      const photoUrl = document.getElementById('celebPhotoUrl').value;
 
-      if (!name || hairColor.length === 0 || !occupation || !gender) {
+      // ЗАМЕНИТЕ ЭТО - получаем массив фото
+      const photoInputs = document.querySelectorAll('.photo-url-input');
+      const photos = Array.from(photoInputs)
+        .map(input => input.value.trim())
+        .filter(url => url !== '');
+
+      if (!name || hairColor.length === 0 || !occupation || !gender || photos.length === 0) {
         alert('Пожалуйста, заполните обязательные поля');
         return;
       }
@@ -1880,9 +1958,10 @@
         occupation,
         gender,
         zodiac,
-        photo: photoUrl || `https://placeholder.darth-kolmar.workers.dev?w=300&h=200&bg=cccccc&fg=333333&txt=${encodeURIComponent(name)}`,
+        photos: photos, // МАССИВ фото
+        photo: photos[0], // первое фото для обратной совместимости
         lastEditedBy: editorInfo,
-        updatedAt: new Date().toISOString() // ← ДОБАВЬТЕ ЭТУ СТРОЧКУ
+        updatedAt: new Date().toISOString()
       };
 
       saveData();
