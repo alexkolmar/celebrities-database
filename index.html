@@ -656,6 +656,7 @@
    { name: "Казахстан", flag: "🇰🇿" },
    { name: "Израиль", flag: "🇮🇱" },
    { name: "Гонконг", flag: "🇭🇰" },
+   { name: "Тайвань", flag: "🇹🇼" },
    { name: "Алжир", flag: "🇩🇿" },
    { name: "ЮАР", flag: "🇿🇦" },
    { name: "Колумбия", flag: "🇨🇴" },
@@ -1883,41 +1884,122 @@ async function saveToGist() {
   }
 
   function renderPagination(totalItems) {
-   const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const container = document.getElementById('celebritiesList');
+  
+  // Удаляем старую пагинацию
+  const oldPagination = document.getElementById('pagination');
+  if (oldPagination) oldPagination.remove();
 
-   // Удаляем старую пагинацию если есть
-   const oldPagination = document.getElementById('pagination');
-   if (oldPagination) oldPagination.remove();
+  if (totalPages <= 1) return;
 
-   if (totalPages <= 1) return; // Не показываем пагинацию если страница одна
-
-   const pagination = document.createElement('nav');
-   pagination.id = 'pagination';
-   pagination.innerHTML = `
-        <ul class="pagination justify-content-center mt-4">
-            <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-                <button class="page-link" onclick="changePage(${currentPage - 1})">← Назад</button>
-            </li>
-            
-            ${Array.from({ length: totalPages }, (_, i) => i + 1)
-     .map(page => `
-                    <li class="page-item ${page === currentPage ? 'active' : ''}">
-                        <button class="page-link" onclick="changePage(${page})">${page}</button>
-                    </li>
-                `).join('')}
-            
-            <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-                <button class="page-link" onclick="changePage(${currentPage + 1})">Вперед →</button>
-            </li>
-        </ul>
+  const pagination = document.createElement('nav');
+  pagination.id = 'pagination';
+  pagination.className = 'mt-4';
+  
+  // Генерируем массив страниц для отображения
+  const pages = generatePageNumbers(currentPage, totalPages);
+  
+  pagination.innerHTML = `
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div class="d-flex align-items-center gap-1">
+        <!-- Кнопка назад -->
+        <button class="btn btn-sm btn-outline-primary ${currentPage === 1 ? 'disabled' : ''}" 
+                onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+          <i class="fas fa-chevron-left"></i>
+        </button>
         
-        <div class="text-center text-muted mt-2">
-            Показано ${((currentPage - 1) * itemsPerPage) + 1}-${Math.min(currentPage * itemsPerPage, totalItems)} из ${totalItems}
-        </div>
-    `;
+        <!-- Номера страниц -->
+        ${pages.map(page => {
+          if (page === '...') {
+            return `<span class="px-2">...</span>`;
+          } else {
+            return `
+              <button class="btn btn-sm ${page === currentPage ? 'btn-primary' : 'btn-outline-primary'}" 
+                      onclick="changePage(${page})">
+                ${page}
+              </button>
+            `;
+          }
+        }).join('')}
+        
+        <!-- Кнопка вперед -->
+        <button class="btn btn-sm btn-outline-primary ${currentPage === totalPages ? 'disabled' : ''}" 
+                onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+      
+      <!-- Быстрый переход -->
+      <div class="d-flex align-items-center gap-2">
+        <span class="text-muted small">Страница</span>
+        <input type="number" class="form-control form-control-sm page-input" 
+               style="width: 70px;" min="1" max="${totalPages}" 
+               value="${currentPage}" 
+               onchange="goToPage(this.value)">
+        <span class="text-muted small">из ${totalPages}</span>
+      </div>
+      
+      <!-- Информация о записях -->
+      <div class="text-muted small">
+        Показано ${((currentPage - 1) * itemsPerPage) + 1}-${Math.min(currentPage * itemsPerPage, totalItems)} из ${totalItems}
+      </div>
+    </div>
+  `;
 
-   document.getElementById('celebritiesList').after(pagination);
+  container.after(pagination);
+}
+
+// Функция для генерации массива страниц с многоточием
+function generatePageNumbers(currentPage, totalPages) {
+  const pages = [];
+  const showPages = 3; // сколько страниц показывать с каждой стороны
+  
+  // Всегда показываем первую страницу
+  pages.push(1);
+  
+  // Страницы слева от текущей
+  const leftStart = Math.max(2, currentPage - showPages);
+  if (leftStart > 2) {
+    pages.push('...');
   }
+  
+  for (let i = leftStart; i < currentPage; i++) {
+    pages.push(i);
+  }
+  
+  // Текущая страница
+  if (currentPage !== 1 && currentPage !== totalPages) {
+    pages.push(currentPage);
+  }
+  
+  // Страницы справа от текущей
+  const rightEnd = Math.min(totalPages - 1, currentPage + showPages);
+  for (let i = currentPage + 1; i <= rightEnd; i++) {
+    pages.push(i);
+  }
+  
+  // Последняя страница
+  if (rightEnd < totalPages - 1) {
+    pages.push('...');
+  }
+  if (totalPages > 1) {
+    pages.push(totalPages);
+  }
+  
+  return pages;
+}
+
+// Функция для перехода на конкретную страницу
+function goToPage(pageNumber) {
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  pageNumber = parseInt(pageNumber);
+  
+  if (pageNumber < 1) pageNumber = 1;
+  if (pageNumber > totalPages) pageNumber = totalPages;
+  
+  changePage(pageNumber);
+}
 
   function changePage(page) {
    currentPage = page;

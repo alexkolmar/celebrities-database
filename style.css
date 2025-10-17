@@ -178,6 +178,29 @@ details.filter-section[open] summary {
   color: #4a2d7d;
 }
 
+.page-input {
+  text-align: center;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .pagination-container {
+    justify-content: center;
+    text-align: center;
+  }
+  
+  .page-input {
+    width: 60px !important;
+  }
+}
+
 .card-body .text-muted {
   display: none;
 }
