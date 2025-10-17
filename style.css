@@ -330,6 +330,42 @@ details.filter-section[open] summary {
   color: #333;
 }
 
+.photo-slider {
+  position: relative;
+}
+
+.slider-controls {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.slider-counter {
+  color: white;
+  background: rgba(0,0,0,0.5);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.celebrity-img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.photo-preview-item {
+  position: relative;
+  display: inline-block;
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+
 @media screen and (max-width: 540px) {
 
   .popup {
