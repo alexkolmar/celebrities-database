@@ -242,6 +242,11 @@ details.filter-section[open] summary {
   height: 90px;
   background: #000;
   background: linear-gradient(135deg, #888 65px, #000 65px, #000 83px, #888 83px);
+  transition: transform 0.3s;
+}
+
+.card:hover .deceased-photo::after {
+  transform: scale(1.09);
 }
 
 #pagination .pagination.mt-4 {
