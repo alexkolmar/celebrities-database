@@ -146,6 +146,7 @@ details.filter-section[open] summary {
 .card-actions {
   opacity: 0;
   transition: opacity 0.3s ease;
+  z-index: 10;
 }
 
 .card:hover .card-actions {
@@ -230,7 +231,6 @@ details.filter-section[open] summary {
   position: relative;
   display: inline-block;
 }
-
 
 .deceased-photo::after {
   content: '';
@@ -338,32 +338,37 @@ details.filter-section[open] summary {
 
 .slider-controls {
   position: absolute;
-  bottom: 10px;
+  bottom: 0;
   left: 0;
   right: 0;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   gap: 10px;
   z-index: 10;
+  padding: 10px;
+  height: 100%;
 }
 
 .slider-counter {
   color: white;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.5);
   padding: 4px 12px;
-  border-radius: 15px;
+  border-radius: 10px;
   font-size: 14px;
   font-weight: bold;
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
 }
 
 .slider-prev,
 .slider-next {
-  background: rgba(0, 0, 0, 0.7) !important;
+  background: rgba(0, 0, 0, 0.5) !important;
   border: 2px solid white !important;
-  border-radius: 50% !important;
-  width: 35px;
-  height: 35px;
+  border-radius: 10px !important;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -373,6 +378,10 @@ details.filter-section[open] summary {
 .slider-next:hover {
   background: rgba(0, 0, 0, 0.9) !important;
   transform: scale(1.1);
+}
+
+.slider-controls .btn:hover, .slider-controls button:hover i::before {
+  color: var(--bs-btn-color);
 }
 
 .celebrity-img {
