@@ -295,6 +295,7 @@ details.filter-section[open] summary {
 .popup_scroll {
   overflow: auto;
   height: calc(100% - 40px);
+  padding-right: 10px;
 }
 
 .popup h2 {
