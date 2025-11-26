@@ -1199,7 +1199,7 @@
     }
 
     // Компактный формат даты (только числа)
-    function formatDateDisplay(dateString) {
+    function formatDate(dateString) {
       if (!dateString) return '';
 
       const date = new Date(dateString);
@@ -1551,21 +1551,14 @@
           <h5 class="card-title">${celeb.name}</h5>
           
           <div class="mb-2">
-  ${celeb.birthDate ? `
-    <span class="badge bg-primary">
-      ${calculateAge(celeb.birthDate)} ${getAgeWord(calculateAge(celeb.birthDate))}
-    </span>
-    <span class="badge bg-light text-dark">
-      📅 ${formatDateDisplay(celeb.birthDate)}
-    </span>
-  ` : ''}
-  ${celeb.isDeceased ? `
-    <span class="badge bg-dark">❌ ${getDeathWord(celeb.gender)} в ${celeb.ageAtDeath} ${getAgeWord(celeb.ageAtDeath)}</span>
-    ${celeb.deathDate ? `<span class="badge bg-dark">💀 ${formatDateDisplay(celeb.deathDate)}</span>` : ''}
-  ` : ''}
-  ${celeb.zodiac ? `<span class="badge bg-info">${celeb.zodiac}</span>` : ''}
-  ${celeb.height ? `<span class="badge bg-secondary">${celeb.height} см</span>` : ''}
-</div>
+            ${celeb.isDeceased ?
+              `<span class="badge bg-dark">❌ ${getDeathWord(celeb.gender)} в ${celeb.ageAtDeath} ${getAgeWord(celeb.ageAtDeath)}</span>` :
+              (celeb.birthDate ? `<span class="badge bg-primary">${calculateAge(celeb.birthDate)} ${getAgeWord(calculateAge(celeb.birthDate))}</span>` : '')
+            }
+            ${celeb.birthDate ? `<span class="badge bg-light text-dark">🗓️ ${formatDate(celeb.birthDate)}</span>` : ''}
+            ${celeb.zodiac ? `<span class="badge bg-info">${celeb.zodiac}</span>` : ''}
+            ${celeb.height ? `<span class="badge bg-secondary">${celeb.height} см</span>` : ''}
+          </div>
           
           <div class="mb-2">
             ${celeb.hairColor.map(color => `<span class="badge bg-purple">${getGenderHairColor(color, celeb.gender)}</span>`).join('')}
