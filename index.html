@@ -821,6 +821,14 @@
       updateSelectedCountries();
     }
 
+    // Добавьте эту функцию где-то в основном скрипте
+    function getUniqueCountriesFromDatabase() {
+      const allCountries = celebrities.flatMap(celeb => celeb.citizenship || []);
+      const uniqueCountries = [...new Set(allCountries)].filter(Boolean);
+      return uniqueCountries.sort();
+    }
+
+
     // Функции для цвета глаз
     function updateSelectedEyeColors() {
       const eyeSelect = document.getElementById('celebEyeColor');
@@ -1027,99 +1035,117 @@
         });
       }
 
-      // инициализация фото полей
-      const firstPhotoInput = document.querySelector('.photo-url-input');
-      if (firstPhotoInput) {
-        firstPhotoInput.addEventListener('input', updatePhotoPreviews);
+      // ДОБАВЬТЕ обработчик для поля фильтра по странам
+      const countryFilterInput = document.getElementById('filterCitizenship');
+      if (countryFilterInput) {
+        countryFilterInput.addEventListener('focus', showCountryFilterDropdown);
+        countryFilterInput.addEventListener('input', showCountryFilterDropdown);
       }
+    }
 
-      // Функция добавления поля для фото
-      function addPhotoField() {
-        const container = document.getElementById('photoUrlsContainer');
-        const newField = document.createElement('div');
-        newField.className = 'input-group mb-2';
-        newField.innerHTML = `
+    // Добавьте в setupEventListeners()
+    document.addEventListener('click', function (e) {
+      const filterInput = document.getElementById('filterCitizenship');
+      const dropdown = document.getElementById('countryFilterDropdown');
+
+      if (dropdown && filterInput &&
+        !dropdown.contains(e.target) &&
+        e.target !== filterInput) {
+        hideCountryFilterDropdown();
+      }
+    });
+
+    // инициализация фото полей
+    const firstPhotoInput = document.querySelector('.photo-url-input');
+    if (firstPhotoInput) {
+      firstPhotoInput.addEventListener('input', updatePhotoPreviews);
+    }
+
+    // Функция добавления поля для фото
+    function addPhotoField() {
+      const container = document.getElementById('photoUrlsContainer');
+      const newField = document.createElement('div');
+      newField.className = 'input-group mb-2';
+      newField.innerHTML = `
     <input type="url" class="form-control photo-url-input" placeholder="https://example.com/photo.jpg" required>
     <button class="btn btn-outline-danger" type="button" onclick="removePhotoField(this)">
       <i class="fas fa-times"></i>
     </button>
   `;
-        container.appendChild(newField);
+      container.appendChild(newField);
 
-        // Добавляем обработчик для предпросмотра
-        const input = newField.querySelector('.photo-url-input');
-        input.addEventListener('input', updatePhotoPreviews);
+      // Добавляем обработчик для предпросмотра
+      const input = newField.querySelector('.photo-url-input');
+      input.addEventListener('input', updatePhotoPreviews);
+    }
+
+    // Функция удаления поля
+    function removePhotoField(button) {
+      const field = button.closest('.input-group');
+      if (document.querySelectorAll('.photo-url-input').length > 1) {
+        field.remove();
+        updatePhotoPreviews();
       }
+    }
 
-      // Функция удаления поля
-      function removePhotoField(button) {
-        const field = button.closest('.input-group');
-        if (document.querySelectorAll('.photo-url-input').length > 1) {
-          field.remove();
-          updatePhotoPreviews();
-        }
-      }
+    // Функция обновления превью
+    function updatePhotoPreviews() {
+      const previewsContainer = document.getElementById('photoPreviews');
+      const inputs = document.querySelectorAll('.photo-url-input');
 
-      // Функция обновления превью
-      function updatePhotoPreviews() {
-        const previewsContainer = document.getElementById('photoPreviews');
-        const inputs = document.querySelectorAll('.photo-url-input');
+      previewsContainer.innerHTML = '';
 
-        previewsContainer.innerHTML = '';
-
-        inputs.forEach((input, index) => {
-          if (input.value) {
-            const preview = document.createElement('div');
-            preview.className = 'photo-preview-item me-2 mb-2';
-            preview.style.position = 'relative';
-            preview.style.display = 'inline-block';
-            preview.innerHTML = `
+      inputs.forEach((input, index) => {
+        if (input.value) {
+          const preview = document.createElement('div');
+          preview.className = 'photo-preview-item me-2 mb-2';
+          preview.style.position = 'relative';
+          preview.style.display = 'inline-block';
+          preview.innerHTML = `
         <img src="${input.value}" class="photo-preview" 
              style="height: 80px; width: auto; border: 2px solid ${index === 0 ? '#0d6efd' : '#6c757d'}; border-radius: 4px;"
              onerror="this.style.display='none'">
         ${index === 0 ? '<span class="badge bg-primary" style="position: absolute; top: 5px; left: 5px; font-size: 10px;">Главная</span>' : ''}
       `;
-            previewsContainer.appendChild(preview);
-          }
-        });
-      }
+          previewsContainer.appendChild(preview);
+        }
+      });
+    }
 
-      // Обработчик для цвета глаз
-      const eyeColorSelect = document.getElementById('celebEyeColor');
-      if (eyeColorSelect) {
-        eyeColorSelect.addEventListener('change', function () {
-          updateSelectedEyeColors();
-        });
-      }
+    // Обработчик для цвета глаз
+    const eyeColorSelect = document.getElementById('celebEyeColor');
+    if (eyeColorSelect) {
+      eyeColorSelect.addEventListener('change', function () {
+        updateSelectedEyeColors();
+      });
+    }
 
-      // Валидация radio кнопок ← ДОБАВЬ ЭТОТ БЛОК
-      document.querySelectorAll('input[name="celebGender"]').forEach(radio => {
-        radio.addEventListener('change', function () {
-          document.querySelectorAll('input[name="celebGender"]').forEach(r => {
-            r.closest('.form-check').classList.remove('is-invalid');
-          });
+    // Валидация radio кнопок ← ДОБАВЬ ЭТОТ БЛОК
+    document.querySelectorAll('input[name="celebGender"]').forEach(radio => {
+      radio.addEventListener('change', function () {
+        document.querySelectorAll('input[name="celebGender"]').forEach(r => {
+          r.closest('.form-check').classList.remove('is-invalid');
         });
       });
+    });
 
-      // Проверка имени при вводе
-      const nameInput = document.getElementById('celebName');
-      if (nameInput) {
-        nameInput.addEventListener('input', checkNameAvailability);
-        // Также проверяем при загрузке страницы, если поле уже заполнено
-        setTimeout(checkNameAvailability, 100);
-      }
+    // Проверка имени при вводе
+    const nameInput = document.getElementById('celebName');
+    if (nameInput) {
+      nameInput.addEventListener('input', checkNameAvailability);
+      // Также проверяем при загрузке страницы, если поле уже заполнено
+      setTimeout(checkNameAvailability, 100);
+    }
 
-      // Обработчики для множественного выбора
-      const ethnicitySelect = document.getElementById('celebEthnicity');
-      if (ethnicitySelect) {
-        ethnicitySelect.addEventListener('change', updateSelectedEthnicities);
-      }
+    // Обработчики для множественного выбора
+    const ethnicitySelect = document.getElementById('celebEthnicity');
+    if (ethnicitySelect) {
+      ethnicitySelect.addEventListener('change', updateSelectedEthnicities);
+    }
 
-      const occupationSelect = document.getElementById('celebOccupation');
-      if (occupationSelect) {
-        occupationSelect.addEventListener('change', updateSelectedOccupations);
-      }
-
+    const occupationSelect = document.getElementById('celebOccupation');
+    if (occupationSelect) {
+      occupationSelect.addEventListener('change', updateSelectedOccupations);
     }
 
     function getZodiacSign(birthDate) {
@@ -1170,6 +1196,18 @@
       }
 
       return age;
+    }
+
+    // Компактный формат даты (только числа)
+    function formatDateDisplay(dateString) {
+      if (!dateString) return '';
+
+      const date = new Date(dateString);
+      return date.toLocaleDateString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
     }
 
     function addCelebrity() {
@@ -1393,21 +1431,21 @@
     }
 
     // ===== ФУНКЦИИ ДЛЯ СЛАЙДЕРА ФОТО =====
-function renderPhotoSlider(celeb) {
-  // Используем массив photos если есть, иначе старую photo
-  const photos = celeb.photos || [celeb.photo];
-  
-  if (photos.length <= 1) {
-    // Если фото одно - просто показываем его
-    return `
+    function renderPhotoSlider(celeb) {
+      // Используем массив photos если есть, иначе старую photo
+      const photos = celeb.photos || [celeb.photo];
+
+      if (photos.length <= 1) {
+        // Если фото одно - просто показываем его
+        return `
       <img src="${photos[0]}" class="celebrity-img" 
            alt="${celeb.name}" 
            onerror="this.src='https://placeholder.darth-kolmar.workers.dev?w=300&h=200&bg=cccccc&fg=333333&txt=${encodeURIComponent(celeb.name)}'">
     `;
-  }
-  
-  // Если несколько фото - делаем слайдер
-  return `
+      }
+
+      // Если несколько фото - делаем слайдер
+      return `
     <div class="photo-slider" id="slider-${celeb.id}">
       <div class="slider-main">
         <img src="${photos[0]}" class="celebrity-img slider-current" 
@@ -1428,46 +1466,46 @@ function renderPhotoSlider(celeb) {
       </div>
     </div>
   `;
-}
+    }
 
-function changePhoto(celebId, direction) {
-  const celeb = celebrities.find(c => c.id === celebId);
-  if (!celeb) return;
-  
-  const photos = celeb.photos || [celeb.photo];
-  const slider = document.getElementById(`slider-${celebId}`);
-  if (!slider) return;
-  
-  const currentImg = slider.querySelector('.slider-current');
-  const currentIndex = parseInt(currentImg.dataset.index || 0);
-  
-  let newIndex = currentIndex + direction;
-  if (newIndex < 0) newIndex = photos.length - 1;
-  if (newIndex >= photos.length) newIndex = 0;
-  
-  showPhoto(celebId, newIndex);
-}
+    function changePhoto(celebId, direction) {
+      const celeb = celebrities.find(c => c.id === celebId);
+      if (!celeb) return;
 
-function showPhoto(celebId, index) {
-  const celeb = celebrities.find(c => c.id === celebId);
-  if (!celeb) return;
-  
-  const photos = celeb.photos || [celeb.photo];
-  const slider = document.getElementById(`slider-${celebId}`);
-  
-  if (!slider || index < 0 || index >= photos.length) return;
-  
-  // Обновляем основное фото
-  const img = slider.querySelector('.slider-current');
-  img.src = photos[index];
-  img.dataset.index = index;
-  
-  // Обновляем счетчик
-  const counter = slider.querySelector('.slider-counter');
-  if (counter) {
-    counter.textContent = `${index + 1}/${photos.length}`;
-  }
-}
+      const photos = celeb.photos || [celeb.photo];
+      const slider = document.getElementById(`slider-${celebId}`);
+      if (!slider) return;
+
+      const currentImg = slider.querySelector('.slider-current');
+      const currentIndex = parseInt(currentImg.dataset.index || 0);
+
+      let newIndex = currentIndex + direction;
+      if (newIndex < 0) newIndex = photos.length - 1;
+      if (newIndex >= photos.length) newIndex = 0;
+
+      showPhoto(celebId, newIndex);
+    }
+
+    function showPhoto(celebId, index) {
+      const celeb = celebrities.find(c => c.id === celebId);
+      if (!celeb) return;
+
+      const photos = celeb.photos || [celeb.photo];
+      const slider = document.getElementById(`slider-${celebId}`);
+
+      if (!slider || index < 0 || index >= photos.length) return;
+
+      // Обновляем основное фото
+      const img = slider.querySelector('.slider-current');
+      img.src = photos[index];
+      img.dataset.index = index;
+
+      // Обновляем счетчик
+      const counter = slider.querySelector('.slider-counter');
+      if (counter) {
+        counter.textContent = `${index + 1}/${photos.length}`;
+      }
+    }
     function renderFilteredCelebrityPage() {
       const container = document.getElementById('celebritiesList');
       container.innerHTML = '';
@@ -1513,13 +1551,21 @@ function showPhoto(celebId, index) {
           <h5 class="card-title">${celeb.name}</h5>
           
           <div class="mb-2">
-            ${celeb.isDeceased ?
-            `<span class="badge bg-dark">❌ ${getDeathWord(celeb.gender)} в ${celeb.ageAtDeath} ${getAgeWord(celeb.ageAtDeath)}</span>` :
-            (celeb.birthDate ? `<span class="badge bg-primary">${calculateAge(celeb.birthDate)} ${getAgeWord(calculateAge(celeb.birthDate))}</span>` : '')
-          }
-            ${celeb.zodiac ? `<span class="badge bg-info">${celeb.zodiac}</span>` : ''}
-            ${celeb.height ? `<span class="badge bg-secondary">${celeb.height} см</span>` : ''}
-          </div>
+  ${celeb.birthDate ? `
+    <span class="badge bg-primary">
+      ${calculateAge(celeb.birthDate)} ${getAgeWord(calculateAge(celeb.birthDate))}
+    </span>
+    <span class="badge bg-light text-dark">
+      📅 ${formatDateDisplay(celeb.birthDate)}
+    </span>
+  ` : ''}
+  ${celeb.isDeceased ? `
+    <span class="badge bg-dark">❌ ${getDeathWord(celeb.gender)} в ${celeb.ageAtDeath} ${getAgeWord(celeb.ageAtDeath)}</span>
+    ${celeb.deathDate ? `<span class="badge bg-dark">💀 ${formatDateDisplay(celeb.deathDate)}</span>` : ''}
+  ` : ''}
+  ${celeb.zodiac ? `<span class="badge bg-info">${celeb.zodiac}</span>` : ''}
+  ${celeb.height ? `<span class="badge bg-secondary">${celeb.height} см</span>` : ''}
+</div>
           
           <div class="mb-2">
             ${celeb.hairColor.map(color => `<span class="badge bg-purple">${getGenderHairColor(color, celeb.gender)}</span>`).join('')}
@@ -2134,6 +2180,58 @@ function showPhoto(celebId, index) {
         'другое': 'Другое'
       };
       return labels[value] || value;
+    }
+
+    // Добавьте эту функцию
+    function showCountryFilterDropdown() {
+      const input = document.getElementById('filterCitizenship');
+      const filter = input.value.toLowerCase();
+
+      // Создаем или находим dropdown контейнер
+      let dropdown = document.getElementById('countryFilterDropdown');
+      if (!dropdown) {
+        dropdown = document.createElement('div');
+        dropdown.id = 'countryFilterDropdown';
+        dropdown.className = 'country-filter-dropdown';
+        input.parentNode.appendChild(dropdown);
+      }
+
+      // Получаем уникальные страны из базы
+      const uniqueCountries = getUniqueCountriesFromDatabase();
+
+      // Фильтруем страны по введенному тексту
+      const filteredCountries = uniqueCountries.filter(country =>
+        country.toLowerCase().includes(filter)
+      );
+
+      if (filteredCountries.length === 0) {
+        dropdown.innerHTML = '<div class="country-item">Страны не найдены</div>';
+        dropdown.style.display = 'block';
+        return;
+      }
+
+      dropdown.innerHTML = filteredCountries.map(country => `
+    <div class="country-item" onclick="selectCountryFilter('${country}')">
+      ${country}
+    </div>
+  `).join('');
+
+      dropdown.style.display = 'block';
+    }
+
+    // Функция для выбора страны в фильтре
+    function selectCountryFilter(countryName) {
+      document.getElementById('filterCitizenship').value = countryName;
+      hideCountryFilterDropdown();
+      applyFilters(); // автоматически применяем фильтры
+    }
+
+    // Функция для скрытия dropdown
+    function hideCountryFilterDropdown() {
+      const dropdown = document.getElementById('countryFilterDropdown');
+      if (dropdown) {
+        dropdown.style.display = 'none';
+      }
     }
 
     function renderPagination(totalItems) {

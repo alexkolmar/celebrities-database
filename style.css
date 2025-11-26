@@ -401,6 +401,36 @@ details.filter-section[open] summary {
   position: relative;
 }
 
+
+/* Добавьте в style.css */
+.country-filter-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-top: none;
+  max-height: 200px;
+  overflow-y: auto;
+  display: none;
+  z-index: 1000;
+}
+
+.country-filter-dropdown .country-item {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.country-filter-dropdown .country-item:hover {
+  background-color: #f8f9fa;
+}
+
+/* Обертка для поля фильтра с относительным позиционированием */
+.filter-row .col-md-6:has(#filterCitizenship) {
+  position: relative;
+}
+
 @media screen and (max-width: 540px) {
 
   .popup {
